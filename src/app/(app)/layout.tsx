@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="no-print sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-orange-100">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo-icon.svg" alt="북북" className="w-8 h-8 rounded-xl" />
+            <img src="/logo-icon.png" alt="북북" className="w-8 h-8 rounded-xl" />
             <span className="font-bold text-stone-700 text-sm">{user.name}님</span>
           </div>
           <form action={logout}>

@@ -13,7 +13,7 @@ export default async function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <img
-            src="/logo-icon.svg"
+            src="/logo-icon.png"
             alt="북북 BookBook"
             className="w-16 h-16 rounded-2xl mb-4 shadow-lg shadow-orange-200 mx-auto"
           />
