@@ -48,7 +48,6 @@ export function SoloRecordingFlow({ recentBooks }: { recentBooks: RecentBook[] }
     setSaveError(null);
     try {
       const form = new FormData();
-      if (recorder.audioBlob) form.set("audio", recorder.audioBlob, "recording.webm");
       form.set("bookTitle", bookTitle.trim());
       form.set("startPage", startPage);
       form.set("endPage", endPage);

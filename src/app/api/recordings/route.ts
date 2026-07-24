@@ -1,10 +1,10 @@
 import { randomUUID } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { checkAndCompleteGroupSession } from "@/lib/groupSession";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   const user = await getCurrentUser();
@@ -13,7 +13,6 @@ export async function POST(request: Request) {
   }
 
   const form = await request.formData();
-  const audio = form.get("audio");
   const bookTitle = String(form.get("bookTitle") ?? "").trim();
   const startPage = Number(form.get("startPage"));
   const endPage = Number(form.get("endPage"));
@@ -32,27 +31,19 @@ export async function POST(request: Request) {
     });
   }
 
-  const id = randomUUID();
-  let audioUrl: string | null = null;
-  if (audio instanceof File && audio.size > 0) {
-    const audioDir = path.join(process.cwd(), "public", "audio");
-    await mkdir(audioDir, { recursive: true });
-    const filename = `${id}.webm`;
-    const buffer = Buffer.from(await audio.arrayBuffer());
-    await writeFile(path.join(audioDir, filename), buffer);
-    audioUrl = `/audio/${filename}`;
-  }
-
+  // Recordings are not persisted server-side: the deployed environment's
+  // filesystem is read-only, so the audio stays local to the browser tab
+  // (played back from the in-memory blob URL) for this session only.
   const session = await prisma.readingSession.create({
     data: {
-      id,
+      id: randomUUID(),
       userId: user.id,
       bookId: book.id,
       type,
       startPage,
       endPage,
       durationSec,
-      audioUrl,
+      audioUrl: null,
       groupSessionId,
     },
     include: { book: true },

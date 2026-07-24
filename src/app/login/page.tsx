@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/db";
 import { loginAs } from "./actions";
 
+// This page lists live user data and must never be statically prerendered
+// at build time (which would require a reachable DB during `next build`).
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage() {
   const users = await prisma.user.findMany({ orderBy: { name: "asc" } });
 

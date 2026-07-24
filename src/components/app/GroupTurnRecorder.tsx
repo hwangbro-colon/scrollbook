@@ -25,7 +25,6 @@ export function GroupTurnRecorder({
     setSaving(true);
     try {
       const form = new FormData();
-      if (recorder.audioBlob) form.set("audio", recorder.audioBlob, "recording.webm");
       form.set("bookTitle", bookTitle);
       form.set("startPage", String(startPage));
       form.set("endPage", String(endPage));

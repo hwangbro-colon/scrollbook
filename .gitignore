@@ -36,11 +36,7 @@ yarn-error.log*
 # vercel
 .vercel
 
-# database
-/prisma/dev.db
-/prisma/dev.db-journal
-
-# uploaded recordings
+# uploaded recordings (dev-only; not persisted in production)
 /public/audio
 
 # typescript

@@ -3,12 +3,13 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// SQLite has no native enum type, so status/type fields below are plain
-// strings constrained by the TS union types in src/lib/types.ts.
+// status/type fields below are plain strings (not native enums) constrained
+// by the TS union types in src/lib/types.ts, kept that way for simplicity
+// since this schema originally targeted SQLite, which has no enum type.
 // There is no role field anywhere: every account is the same kind of
 // "User". Whether someone is a group's host is determined purely by
 // comparing Group.hostUserId to the current user's id.
