@@ -1,0 +1,36 @@
+<svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+  <!-- BookBook horizontal lockup — icon + wordmark, transparent background -->
+
+  <g transform="translate(10,10)">
+    <!-- speech-bubble "open book" outline -->
+    <path d="M60,148 L48,182 L86,150 Z" fill="none" stroke="#2E2A6E" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+    <rect x="30" y="34" width="160" height="116" rx="28" fill="none" stroke="#2E2A6E" stroke-width="7"/>
+
+    <!-- book spine -->
+    <path d="M110,50 Q103,92 110,134" fill="none" stroke="#2E2A6E" stroke-width="5" stroke-linecap="round" opacity="0.35"/>
+
+    <!-- left page lines, indigo -->
+    <line x1="48" y1="66"  x2="93"  y2="66"  stroke="#2E2A6E" stroke-width="9" stroke-linecap="round"/>
+    <line x1="48" y1="88"  x2="100" y2="88"  stroke="#2E2A6E" stroke-width="9" stroke-linecap="round"/>
+    <line x1="48" y1="110" x2="86"  y2="110" stroke="#2E2A6E" stroke-width="9" stroke-linecap="round"/>
+
+    <!-- right page lines, coral -->
+    <line x1="127" y1="66"  x2="172" y2="66"  stroke="#FF6B4A" stroke-width="9" stroke-linecap="round"/>
+    <line x1="127" y1="88"  x2="166" y2="88"  stroke="#FF6B4A" stroke-width="9" stroke-linecap="round"/>
+    <line x1="127" y1="110" x2="172" y2="110" stroke="#FF6B4A" stroke-width="9" stroke-linecap="round"/>
+
+    <!-- voice / sound waves -->
+    <path d="M186,48 Q204,35 186,18" fill="none" stroke="#FF6B4A" stroke-width="7" stroke-linecap="round"/>
+    <path d="M194,54 Q220,32 194,6"  fill="none" stroke="#FF6B4A" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+  </g>
+
+  <!-- wordmark: 북 (indigo) + 북 (coral), echoing the two-voice / read-together concept -->
+  <text x="250" y="150" font-family="'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif" font-weight="800" font-size="120" letter-spacing="-2">
+    <tspan fill="#2E2A6E">북</tspan><tspan fill="#FF6B4A">북</tspan>
+  </text>
+
+  <!-- tagline -->
+  <text x="252" y="185" font-family="'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif" font-weight="500" font-size="24" fill="#6B6890" letter-spacing="0.5">
+    함께 읽는 소리, 북북
+  </text>
+</svg>

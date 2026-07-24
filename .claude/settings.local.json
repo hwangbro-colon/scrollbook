@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(npx --yes create-next-app@latest . --typescript --tailwind --app --src-dir --import-alias \"@/*\" --eslint --use-npm --no-turbopack)",
+      "Bash(npx --yes create-next-app@latest --help)",
+      "Bash(npx --yes create-next-app@latest bookbook-tmp --typescript --tailwind --app --src-dir --import-alias \"@/*\" --eslint --use-npm --no-turbopack --disable-git)",
+      "Bash(npx prisma *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(printf 'FAKEAUDIO')",
+      "Bash(ls -la test.webm)",
+      "Read(//tmp/**)",
+      "Bash(rm -f /tmp/test.webm)",
+      "Bash(curl -s -i http://localhost:3000/student/sessions)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/student/vocab)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/student/history)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/student/sessions)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/login)",
+      "Bash(npx tsc *)",
+      "Bash(cp bookbook_logo_icon.svg public/logo-icon.svg)",
+      "Bash(cp bookbook_logo_icon.svg src/app/icon.svg)",
+      "Bash(cp bookbook_logo_horizontal.svg public/logo-horizontal.svg)",
+      "Bash(mv /tmp/check.ts ./check-tmp.ts)",
+      "Bash(npx tsx *)"
+    ]
+  }
+}

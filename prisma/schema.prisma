@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite has no native enum type, so status/type fields below are plain
+// strings constrained by the TS union types in src/lib/types.ts.
+// There is no role field anywhere: every account is the same kind of
+// "User". Whether someone is a group's host is determined purely by
+// comparing Group.hostUserId to the current user's id.
+
+model User {
+  id    String  @id @default(cuid())
+  name  String
+  email String?
+
+  sessions       ReadingSession[]
+  vocabs         VocabEntry[]
+  reports        MonthlyReport[]
+  hostedSessions GroupSession[]            @relation("GroupSessionHost")
+  participations GroupSessionParticipant[]
+  hostedMeetups  BookClubMeetup[]          @relation("MeetupHost")
+  meetupJoins    BookClubParticipant[]
+  meetupMessages BookClubMessage[]
+  meetupRatings  BookClubRating[]
+  hostedGroups   Group[]                   @relation("GroupHost")
+  groupMembers   GroupMember[]
+}
+
+model Book {
+  id         String @id @default(cuid())
+  title      String
+  author     String
+  totalPages Int
+
+  sessions      ReadingSession[]
+  groupSessions GroupSession[]
+  meetups       BookClubMeetup[]
+}
+
+model ReadingSession {
+  id          String   @id @default(cuid())
+  userId      String
+  bookId      String
+  type        String // "solo" | "online" | "offline"
+  startPage   Int
+  endPage     Int
+  durationSec Int
+  audioUrl    String?
+  date        DateTime @default(now())
+
+  groupSessionId String?
+  groupSession   GroupSession? @relation(fields: [groupSessionId], references: [id])
+
+  bookClubMeetupId String?
+  bookClubMeetup    BookClubMeetup? @relation(fields: [bookClubMeetupId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+}
+
+model VocabEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  word      String
+  meaning   String
+  memorized Boolean  @default(false)
+  date      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// Ad-hoc, one-off turn-based "함께 읽기" reading session. Anyone can start
+// one directly with a handful of participants; it does not require an
+// underlying Group.
+model GroupSession {
+  id            String   @id @default(cuid())
+  bookId        String
+  hostUserId    String
+  schedule      DateTime
+  status        String   @default("scheduled") // "scheduled" | "active" | "ended"
+  planStartPage Int      @default(0)
+  planEndPage   Int      @default(0)
+
+  book         Book                      @relation(fields: [bookId], references: [id])
+  hostUser     User                      @relation("GroupSessionHost", fields: [hostUserId], references: [id])
+  participants GroupSessionParticipant[]
+  sessions     ReadingSession[]
+}
+
+model GroupSessionParticipant {
+  id             String @id @default(cuid())
+  groupSessionId String
+  userId         String
+  turnOrder      Int
+
+  groupSession GroupSession @relation(fields: [groupSessionId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@unique([groupSessionId, userId])
+}
+
+model MonthlyReport {
+  id             String @id @default(cuid())
+  userId         String
+  month          String
+  totalMinutes   Int
+  booksCompleted Int
+  vocabCount     Int
+  summary        String
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, month])
+}
+
+// Persistent, named group (class, study group, club, ...). Anyone can
+// create one and becomes its host; others join via invite code.
+model Group {
+  id         String   @id @default(cuid())
+  name       String
+  inviteCode String   @unique
+  hostUserId String
+  createdAt  DateTime @default(now())
+
+  host    User          @relation("GroupHost", fields: [hostUserId], references: [id])
+  members GroupMember[]
+}
+
+model GroupMember {
+  id       String   @id @default(cuid())
+  groupId  String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([groupId, userId])
+}
+
+model Venue {
+  id          String  @id @default(cuid())
+  name        String
+  address     String
+  lat         Float
+  lng         Float
+  category    String // "study_cafe" | "library" | "bookstore" | "cafe"
+  description String?
+
+  meetups BookClubMeetup[]
+}
+
+model BookClubMeetup {
+  id          String   @id @default(cuid())
+  venueId     String
+  bookId      String
+  hostId      String
+  scheduledAt DateTime
+  capacity    Int
+  status      String   @default("open") // "open" | "ended" | "cancelled"
+
+  venue        Venue                 @relation(fields: [venueId], references: [id])
+  book         Book                  @relation(fields: [bookId], references: [id])
+  host         User                  @relation("MeetupHost", fields: [hostId], references: [id])
+  participants BookClubParticipant[]
+  messages     BookClubMessage[]
+  ratings      BookClubRating[]
+  readingLogs  ReadingSession[]
+}
+
+model BookClubParticipant {
+  id       String   @id @default(cuid())
+  meetupId String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  meetup BookClubMeetup @relation(fields: [meetupId], references: [id])
+  user   User           @relation(fields: [userId], references: [id])
+
+  @@unique([meetupId, userId])
+}
+
+model BookClubMessage {
+  id        String   @id @default(cuid())
+  meetupId  String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  meetup BookClubMeetup @relation(fields: [meetupId], references: [id])
+  user   User           @relation(fields: [userId], references: [id])
+}
+
+model BookClubRating {
+  id        String   @id @default(cuid())
+  meetupId  String
+  userId    String
+  stars     Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  meetup BookClubMeetup @relation(fields: [meetupId], references: [id])
+  user   User           @relation(fields: [userId], references: [id])
+
+  @@unique([meetupId, userId])
+}
