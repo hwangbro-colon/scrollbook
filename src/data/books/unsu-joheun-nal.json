@@ -1,0 +1,52 @@
+{
+  "id": "unsu-joheun-nal-1924",
+  "title": "운수 좋은 날",
+  "author": "현진건",
+  "yearPublished": 1924,
+  "copyrightStatus": "public_domain",
+  "source": "위키문헌(ko.wikisource.org) — 현진건(1943년 별세, 저작권 보호기간 만료). 본 앱에는 도입부 일부 문장만 짧게 발췌해 수록함",
+  "genre": "고전소설",
+  "coverColor": "#141414",
+  "estimatedReadMinutes": 18,
+  "isNew": false,
+  "readCount": 1200,
+  "addedAt": "2026-06-01T00:00:00.000Z",
+  "chapters": [
+    {
+      "chapterNumber": 1,
+      "chapterTitle": "도입부 (발췌)",
+      "chunks": [
+        {
+          "chunkId": "unsu-ch1-001",
+          "sentences": [
+            "새침하게 흐린 품이 눈이 올 듯하더니 눈은 아니 오고 얼다가 만 비가 추적추적 내리었다.",
+            "이날이야말로 동소문 안에서 인력거꾼 노릇을 하는 김 첨지에게는 오래간만에도 닥친 운수 좋은 날이었다.",
+            "문안에 들어간답시는 앞집 마나님을 전찻길까지 모셔다 드린 것을 비롯으로 행운이 이어졌다."
+          ]
+        },
+        {
+          "chunkId": "unsu-ch1-002",
+          "sentences": [
+            "첫번에 삼십 전, 둘째 번에 오십 전 — 아침 댓바람에 그리 흔치 않은 일이었다.",
+            "그야말로 재수가 옴붙어서 근 열흘 동안 돈 구경도 못한 김 첨지는 십 전짜리 백통화 서 푼, 또는 다섯 푼이 찰깍하고 손바닥에 떨어질 제 거의 눈물을 흘릴 만큼 기뻤었다."
+          ]
+        }
+      ]
+    }
+  ],
+  "vocabCandidates": [
+    { "word": "인력거꾼", "meaning": "사람을 태우는 수레인 인력거를 끄는 일을 하던 사람" },
+    { "word": "동소문", "meaning": "서울 성곽의 동쪽에 있던 문(혜화문)을 이르던 말" },
+    { "word": "첨지", "meaning": "나이 든 남자를 낮추어 이르던 옛말" }
+  ],
+  "comprehensionQuiz": {
+    "question": "김 첨지가 이날을 '운수 좋은 날'이라고 여긴 이유는 무엇인가요?",
+    "options": [
+      { "text": "평소보다 인력거 손님이 많고 벌이가 좋아서", "correct": true },
+      { "text": "오랜만에 눈이 내려서", "correct": false }
+    ]
+  },
+  "creativeQuiz": {
+    "question": "작가는 왜 제목을 '운수 좋은 날'이라고 지었을까요? 이야기가 어떻게 흘러갈지 자유롭게 예상해보세요."
+  }
+}
