@@ -42,7 +42,7 @@ export function HomeView() {
           className="flex h-5 w-5 items-center justify-center text-[10px]"
           style={{
             borderRadius: "var(--radius-chip)",
-            background: "linear-gradient(155deg,#8A85D6,var(--color-accent) 65%)",
+            background: "linear-gradient(155deg,#FFB570,var(--color-accent) 65%)",
             boxShadow: "inset -2px -2px 4px rgba(0,0,0,.18)",
           }}
         >

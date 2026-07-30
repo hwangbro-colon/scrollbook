@@ -1,7 +1,7 @@
 // Single source of truth for brand colors, corner-radius tokens, fonts,
-// logo path, and app copy. Values below are lifted directly from the
-// design-fidelity reference (bookbook_prototype_v4.html) — do not eyeball
-// new values, re-check that file if anything looks off.
+// logo path, and app copy. Accent is orange per explicit direction — the
+// rest of the palette still follows the design-fidelity reference
+// (bookbook_prototype_v4.html).
 
 export const theme = {
   colors: {
@@ -12,8 +12,8 @@ export const theme = {
     line: "#E7E4DE", // borders/dividers
     // Single accent color for the whole app — used only for CTAs, streaks,
     // "new" tags, #1 ranking, mileage rewards, quiz cards, etc.
-    accent: "#2E2A6E",
-    accentTint: "#E7E6F5",
+    accent: "#FF6A1A",
+    accentTint: "#FFE6D6",
   },
   // Kept in the 6-10px range everywhere on purpose — no pill/fully-rounded
   // shapes anywhere in the app.

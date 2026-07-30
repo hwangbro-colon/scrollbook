@@ -10,7 +10,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className="relative mx-auto flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-[var(--color-paper)] shadow-xl sm:my-4 sm:min-h-[calc(100vh-2rem)]"
+      className="relative mx-auto flex h-svh w-full max-w-md flex-col overflow-hidden bg-[var(--color-paper)] shadow-xl sm:my-4 sm:h-[calc(100vh-2rem)]"
       style={{ borderRadius: "var(--radius-card)" }}
     >
 
