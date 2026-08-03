@@ -62,11 +62,11 @@ export function FriendsView() {
                 <button
                   type="button"
                   onClick={() => toggleClub(club.id)}
-                  className="flex-none border-[1.5px] px-3 py-1.5 text-[11px] font-bold"
+                  className="flex-none border-[1.5px] border-[var(--color-ink)] px-3 py-1.5 text-[10.5px] font-bold"
                   style={{
                     borderRadius: "var(--radius-btn)",
-                    borderColor: club.joined ? "var(--color-line)" : "var(--color-ink)",
-                    color: club.joined ? "var(--color-ink-soft)" : "var(--color-ink)",
+                    background: club.joined ? "var(--color-ink)" : "none",
+                    color: club.joined ? "#fff" : "var(--color-ink)",
                   }}
                 >
                   {club.joined ? "가입중" : "가입하기"}

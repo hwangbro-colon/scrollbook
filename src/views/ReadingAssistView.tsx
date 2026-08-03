@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, BookOpen, BarChart3 } from "lucide-react";
+import { BookOpen, BarChart3 } from "lucide-react";
 import { useAppStore } from "../store/appStore";
 import { useToastStore } from "../store/toastStore";
 import { useSimulatedAsync } from "../hooks/useSimulatedAsync";
@@ -61,42 +61,6 @@ export function ReadingAssistView() {
 
       <SectionHead first title="어휘노트" action="더보기" />
 
-      <div className="mb-1 flex gap-2">
-        <input
-          value={word}
-          onChange={(e) => {
-            setWord(e.target.value);
-            if (formError) setFormError(null);
-          }}
-          placeholder="단어"
-          aria-invalid={!!formError}
-          className="min-w-0 flex-1 border-[1.5px] px-3 py-2 text-[12.5px] text-[var(--color-ink)] outline-none"
-          style={{ borderRadius: "var(--radius-btn)", borderColor: formError ? "#D64545" : "var(--color-line)" }}
-        />
-        <input
-          value={meaning}
-          onChange={(e) => {
-            setMeaning(e.target.value);
-            if (formError) setFormError(null);
-          }}
-          placeholder="뜻"
-          aria-invalid={!!formError}
-          className="min-w-0 flex-1 border-[1.5px] px-3 py-2 text-[12.5px] text-[var(--color-ink)] outline-none"
-          style={{ borderRadius: "var(--radius-btn)", borderColor: formError ? "#D64545" : "var(--color-line)" }}
-        />
-        <button
-          type="button"
-          onClick={handleAdd}
-          aria-label="어휘 추가"
-          className="flex flex-none items-center justify-center bg-[var(--color-ink)] px-3 text-white"
-          style={{ borderRadius: "var(--radius-btn)" }}
-        >
-          <Plus size={16} aria-hidden="true" />
-        </button>
-      </div>
-      {formError && <p className="mb-2.5 text-[11px] font-semibold text-[#D64545]">{formError}</p>}
-      {!formError && <div className="mb-3" />}
-
       {vocabAsync.status === "loading" && (
         <div className="flex flex-col gap-2.5 border-[1.5px] border-[var(--color-line)] p-4" style={{ borderRadius: "var(--radius-card)" }}>
           <Skeleton height={14} />
@@ -104,34 +68,69 @@ export function ReadingAssistView() {
           <Skeleton height={14} width="65%" />
         </div>
       )}
-      {vocabAsync.status === "success" &&
-        (vocabList.length === 0 ? (
-          <EmptyState
-            icon={BookOpen}
-            title="아직 저장한 단어가 없어요"
-            description="낭독이나 스크롤을 하며 모르는 단어를 저장해보세요"
-            action={
-              <div className="mt-1 flex gap-2">
-                <Link
-                  to="/reading"
-                  className="border-[1.5px] border-[var(--color-ink)] px-3 py-1.5 text-[11px] font-bold text-[var(--color-ink)]"
-                  style={{ borderRadius: "var(--radius-btn)" }}
-                >
-                  낭독하러 가기
-                </Link>
-                <Link
-                  to="/scroll"
-                  className="bg-[var(--color-ink)] px-3 py-1.5 text-[11px] font-bold text-white"
-                  style={{ borderRadius: "var(--radius-btn)" }}
-                >
-                  스크롤 읽기
-                </Link>
-              </div>
-            }
-          />
-        ) : (
-          <div className="border-[1.5px] border-[var(--color-ink)] px-4" style={{ borderRadius: "var(--radius-card)" }}>
-            {vocabList.map((v, i) => (
+      {vocabAsync.status === "success" && (
+        <div className="border-[1.5px] border-[var(--color-ink)] px-4 py-3" style={{ borderRadius: "var(--radius-card)" }}>
+          <div className="mb-2.5 flex gap-2">
+            <input
+              value={word}
+              onChange={(e) => {
+                setWord(e.target.value);
+                if (formError) setFormError(null);
+              }}
+              placeholder="새 단어"
+              aria-invalid={!!formError}
+              className="min-w-0 flex-1 border-0 border-b-[1.5px] bg-transparent py-1.5 text-[12px] text-[var(--color-ink)] outline-none"
+              style={{ borderColor: formError ? "#D64545" : "var(--color-line)" }}
+            />
+            <input
+              value={meaning}
+              onChange={(e) => {
+                setMeaning(e.target.value);
+                if (formError) setFormError(null);
+              }}
+              placeholder="뜻"
+              aria-invalid={!!formError}
+              className="min-w-0 flex-1 border-0 border-b-[1.5px] bg-transparent py-1.5 text-[12px] text-[var(--color-ink)] outline-none"
+              style={{ borderColor: formError ? "#D64545" : "var(--color-line)" }}
+            />
+            <button
+              type="button"
+              onClick={handleAdd}
+              aria-label="어휘 추가"
+              className="flex-none bg-[var(--color-accent)] px-3.5 text-[11px] font-extrabold text-white"
+              style={{ borderRadius: "var(--radius-btn)" }}
+            >
+              추가
+            </button>
+          </div>
+          {formError && <p className="mb-2 text-[11px] font-semibold text-[#D64545]">{formError}</p>}
+
+          {vocabList.length === 0 ? (
+            <EmptyState
+              icon={BookOpen}
+              title="아직 저장한 단어가 없어요"
+              description="낭독이나 스크롤을 하며 모르는 단어를 저장해보세요"
+              action={
+                <div className="mt-1 flex gap-2">
+                  <Link
+                    to="/reading"
+                    className="border-[1.5px] border-[var(--color-ink)] px-3 py-1.5 text-[11px] font-bold text-[var(--color-ink)]"
+                    style={{ borderRadius: "var(--radius-btn)" }}
+                  >
+                    낭독하러 가기
+                  </Link>
+                  <Link
+                    to="/scroll"
+                    className="bg-[var(--color-ink)] px-3 py-1.5 text-[11px] font-bold text-white"
+                    style={{ borderRadius: "var(--radius-btn)" }}
+                  >
+                    스크롤 읽기
+                  </Link>
+                </div>
+              }
+            />
+          ) : (
+            vocabList.map((v, i) => (
               <div
                 key={`${v.word}-${i}`}
                 className={`flex items-center justify-between py-2.5 ${i === 0 ? "" : "border-t border-[var(--color-line)]"}`}
@@ -139,9 +138,10 @@ export function ReadingAssistView() {
                 <b className="text-[13px] text-[var(--color-ink)]">{v.word}</b>
                 <span className="text-[11.5px] text-[var(--color-ink-soft)]">{v.meaning}</span>
               </div>
-            ))}
-          </div>
-        ))}
+            ))
+          )}
+        </div>
+      )}
 
       {suggestedWords.length > 0 && (
         <div className="mt-3 flex flex-col gap-2">

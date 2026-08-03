@@ -19,25 +19,29 @@ export function ScrollView() {
   const [progress, setProgress] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answered, setAnswered] = useState(false);
+  const [skipped, setSkipped] = useState(false);
   const [submittingOptionIndex, setSubmittingOptionIndex] = useState<number | null>(null);
   const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
   const [completionAwarded, setCompletionAwarded] = useState(false);
+  const quizResolved = answered || skipped;
 
   const earnMileage = useMileageStore((s) => s.earnMileage);
   const displayedProgress = useCountUp(progress, 250);
 
   // Flatten chapters → one flat list of (chunk + chapter label) in order,
   // since the scroll reel shows one chunk per card regardless of chapter.
+  // Only the very first and very last card of the whole book get a swipe
+  // hint (matching the reference — no per-chapter transition hint).
   const flatChunks = useMemo(() => {
     if (!book) return [];
-    return book.chapters.flatMap((chapter) =>
+    const all = book.chapters.flatMap((chapter) =>
       chapter.chunks.map((chunk, i) => ({
         ...chunk,
         eyebrow: i === 0 ? `${book.title} · ${chapter.chapterTitle}` : "이어서",
         isFirstOfBook: chapter.chapterNumber === 1 && i === 0,
-        isLastOfChapter: i === chapter.chunks.length - 1,
       })),
     );
+    return all.map((chunk, i) => ({ ...chunk, isLastOfBook: i === all.length - 1 }));
   }, [book]);
 
   const totalSteps = flatChunks.length + 1; // +1 for the comprehension-quiz card
@@ -60,7 +64,7 @@ export function ScrollView() {
   };
 
   const handleSelectOption = (optionIndex: number) => {
-    if (answered || submittingOptionIndex !== null) return;
+    if (quizResolved || submittingOptionIndex !== null) return;
     setSubmittingOptionIndex(optionIndex);
     setTimeout(() => {
       setSelectedOptionIndex(optionIndex);
@@ -68,6 +72,11 @@ export function ScrollView() {
       setSubmittingOptionIndex(null);
       earnMileage(10, "이해도 체크 참여", "quiz");
     }, QUIZ_SUBMIT_DELAY_MS);
+  };
+
+  const handleSkip = () => {
+    if (quizResolved || submittingOptionIndex !== null) return;
+    setSkipped(true);
   };
 
   if (!book) {
@@ -133,8 +142,8 @@ export function ScrollView() {
               {chunk.isFirstOfBook && (
                 <div className="mt-4 text-center text-[10px] tracking-[.04em] opacity-40">▲ 위로 넘겨서 계속 읽기 ▲</div>
               )}
-              {chunk.isLastOfChapter && !chunk.isFirstOfBook && (
-                <div className="mt-4 text-center text-[10px] tracking-[.04em] opacity-40">계속 넘기면 이야기가 이어져요</div>
+              {chunk.isLastOfBook && !chunk.isFirstOfBook && (
+                <div className="mt-4 text-center text-[10px] tracking-[.04em] opacity-40">▲ 다 읽었어요, 위로 넘겨보세요 ▲</div>
               )}
             </div>
           ))}
@@ -143,13 +152,14 @@ export function ScrollView() {
             className="flex h-full flex-col justify-center bg-[var(--color-accent)] p-6 text-white"
             style={{ scrollSnapAlign: "start" }}
           >
-            <div className="mb-2.5 text-[10px] font-bold uppercase tracking-[.08em] opacity-85">이해도 체크</div>
+            <div className="mb-2.5 text-[10px] font-bold uppercase tracking-[.08em] opacity-85">낭독 완료 · 이해도 체크 (선택)</div>
             <h4
               className="mb-4 whitespace-pre-line text-[16.5px] font-semibold leading-[1.5]"
               style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}
             >
               {book.comprehensionQuiz.question}
             </h4>
+            <p className="mb-4 text-[11.5px] opacity-80">참여하면 마일리지 +10 적립돼요</p>
             {book.comprehensionQuiz.options.map((opt, i) => {
               const isSelected = selectedOptionIndex === i;
               const showCorrect = answered && opt.correct;
@@ -158,7 +168,7 @@ export function ScrollView() {
                 <button
                   key={i}
                   type="button"
-                  disabled={answered || submittingOptionIndex !== null}
+                  disabled={quizResolved || submittingOptionIndex !== null}
                   onClick={() => handleSelectOption(i)}
                   className="mb-2.5 flex w-full items-center justify-between text-left text-[13px] font-semibold"
                   style={{
@@ -175,6 +185,24 @@ export function ScrollView() {
                 </button>
               );
             })}
+            {!quizResolved && (
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="mt-0.5 w-full text-center text-[11.5px] font-bold text-white"
+                style={{ padding: "9px 0", borderRadius: "var(--radius-btn)", border: "1px solid rgba(255,255,255,.5)" }}
+              >
+                건너뛰기
+              </button>
+            )}
+            {answered && (
+              <div
+                className="mt-3 text-center text-[11.5px] font-extrabold"
+                style={{ background: "#fff", color: "var(--color-accent)", borderRadius: "var(--radius-chip)", padding: "9px 10px" }}
+              >
+                +10 마일리지 적립 완료
+              </div>
+            )}
           </div>
         </div>
       ) : (

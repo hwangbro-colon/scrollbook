@@ -16,12 +16,16 @@ const TABS = [
 export function BottomNav() {
   return (
     <nav
-      className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-around border-t border-white/50 bg-white/65 px-1 pt-[9px] backdrop-blur-lg backdrop-saturate-150"
+      className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-around px-1 pt-[9px]"
       style={{
         paddingBottom: "calc(9px + env(safe-area-inset-bottom, 0px))",
         borderTopLeftRadius: "var(--radius-card)",
         borderTopRightRadius: "var(--radius-card)",
-        boxShadow: "0 -8px 24px rgba(20,20,20,0.08)",
+        background: "var(--color-nav-cream-glass)",
+        backdropFilter: "blur(18px) saturate(180%)",
+        WebkitBackdropFilter: "blur(18px) saturate(180%)",
+        borderTop: "1px solid rgba(255,255,255,.55)",
+        boxShadow: "0 -6px 24px rgba(20,20,20,.08)",
       }}
     >
       {TABS.map(({ to, label, icon: Icon, end }) => (

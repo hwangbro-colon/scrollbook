@@ -4,7 +4,7 @@
 export function Topbar({ onProfileClick }: { onProfileClick: () => void }) {
   return (
     <header
-      className="flex flex-none items-center justify-between border-b border-[var(--color-line)] bg-[var(--color-paper)] px-5 pb-3"
+      className="flex flex-none items-center justify-between border-b border-[var(--color-line)] bg-[var(--color-nav-cream)] px-5 pb-3"
       style={{ paddingTop: "calc(12px + env(safe-area-inset-top, 0px))" }}
     >
       <div className="flex items-center gap-[5px]">

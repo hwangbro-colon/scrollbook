@@ -14,6 +14,10 @@ export const theme = {
     // "new" tags, #1 ranking, mileage rewards, quiz cards, etc.
     accent: "#FF6A1A",
     accentTint: "#FFE6D6",
+    // Flat cream used only for the topbar background and as the base tone
+    // for the bottom nav's glass tint (never used as a general surface).
+    navCream: "#FEF2E1",
+    navCreamGlass: "rgba(254,242,225,.62)",
   },
   // Kept in the 6-10px range everywhere on purpose — no pill/fully-rounded
   // shapes anywhere in the app.
@@ -45,6 +49,8 @@ export function applyTheme() {
   root.setProperty("--color-line", theme.colors.line);
   root.setProperty("--color-accent", theme.colors.accent);
   root.setProperty("--color-accent-tint", theme.colors.accentTint);
+  root.setProperty("--color-nav-cream", theme.colors.navCream);
+  root.setProperty("--color-nav-cream-glass", theme.colors.navCreamGlass);
   root.setProperty("--radius-card", theme.radius.card);
   root.setProperty("--radius-btn", theme.radius.btn);
   root.setProperty("--radius-chip", theme.radius.chip);
