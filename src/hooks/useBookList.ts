@@ -6,16 +6,21 @@ export type BookListFilters = {
   isNew?: boolean;
   sortBy?: "popularity" | "newest";
   limit?: number;
+  excludeIds?: string[];
 };
 
 export function useBookList(filters: BookListFilters = {}): Book[] {
-  const { isNew, sortBy, limit } = filters;
+  const { isNew, sortBy, limit, excludeIds } = filters;
 
   return useMemo(() => {
     let list = BOOKS.slice();
 
     if (isNew !== undefined) {
       list = list.filter((b) => !!b.isNew === isNew);
+    }
+    if (excludeIds && excludeIds.length > 0) {
+      const excluded = new Set(excludeIds);
+      list = list.filter((b) => !excluded.has(b.id));
     }
 
     if (sortBy === "popularity") {
@@ -25,5 +30,5 @@ export function useBookList(filters: BookListFilters = {}): Book[] {
     }
 
     return typeof limit === "number" ? list.slice(0, limit) : list;
-  }, [isNew, sortBy, limit]);
+  }, [isNew, sortBy, limit, excludeIds]);
 }

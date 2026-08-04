@@ -11,6 +11,8 @@
   "isNew": true,
   "readCount": 860,
   "addedAt": "2026-07-20T00:00:00.000Z",
+  "rankChangeDaily": -1,
+  "rankChangeWeekly": 2,
   "chapters": [
     {
       "chapterNumber": 1,
@@ -83,6 +85,13 @@
     "options": [
       { "text": "용왕의 병을 고치기 위해 토끼의 간이 필요해서", "correct": true },
       { "text": "토끼와 오래도록 친구가 되고 싶어서", "correct": false }
+    ]
+  },
+  "comprehensionQuizEasy": {
+    "question": "용궁에서 병이 든 사람은 누구인가요?",
+    "options": [
+      { "text": "용왕", "correct": true },
+      { "text": "자라", "correct": false }
     ]
   },
   "creativeQuiz": {

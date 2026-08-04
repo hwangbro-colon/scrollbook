@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useAppStore } from "../../store/appStore";
 import { useMileageStore } from "../../store/mileageStore";
+import { useCountdownTo6AM } from "../../hooks/useCountdownTo6AM";
+
+const TOMORROW_PREVIEW = "「별주부전」 3장 · 용궁 잔치";
 
 const SUBMIT_DELAY_MS = 500;
 const STREAK_BONUS_EVERY = 7;
@@ -30,6 +33,7 @@ export function DailyChallengeCard({ variant }: { variant: "hero" | "compact" })
   const completeDailyChallenge = useAppStore((s) => s.completeDailyChallenge);
   const earnMileage = useMileageStore((s) => s.earnMileage);
   const [submitting, setSubmitting] = useState(false);
+  const resetCountdown = useCountdownTo6AM(dailyChallengeDone);
 
   const handleStart = () => {
     if (dailyChallengeDone || submitting) return;
@@ -106,9 +110,15 @@ export function DailyChallengeCard({ variant }: { variant: "hero" | "compact" })
         </div>
       </div>
       {dailyChallengeDone ? (
-        <p className="mt-4 text-center text-[15px] font-bold text-[var(--color-accent)]">
-          오늘의 챌린지를 완료했어요
-        </p>
+        <div className="mt-4 text-center">
+          <p className="text-[15px] font-bold text-[var(--color-accent)]">오늘의 챌린지를 완료했어요</p>
+          <p className="mt-1 text-[11px] font-semibold text-[var(--color-ink-soft)]">
+            내일 오전 6시에 초기화 · <span className="font-mono">{resetCountdown}</span> 남음
+          </p>
+          <p className="mt-2.5 select-none text-[11.5px] text-[var(--color-ink-soft)] blur-[3px]" aria-hidden="true">
+            내일의 챌린지: {TOMORROW_PREVIEW}
+          </p>
+        </div>
       ) : (
         <button
           type="button"

@@ -5,9 +5,9 @@ import { useCountUp } from "../../hooks/useCountUp";
 
 const PROFILE_MENU = [
   { id: "mileage", icon: Star, label: "마일리지 · 리워드", sub: null as string | null, to: "/mileage" },
-  { id: "activity", icon: FileText, label: "내 활동 내역", sub: "낭독 · 감상문 · 퀴즈 기록", to: null },
+  { id: "activity", icon: FileText, label: "내 활동 내역", sub: "낭독 · 감상문 · 퀴즈 기록", to: "/activity" },
   { id: "payment", icon: CreditCard, label: "결제 내역", sub: "쿠폰 · 구독 관리", to: null },
-  { id: "settings", icon: Settings, label: "계정 설정", sub: "알림 · 로그아웃", to: null },
+  { id: "settings", icon: Settings, label: "계정 설정", sub: "알림 · 로그아웃", to: "/settings" },
 ];
 
 export function ProfilePanel({ open, onClose }: { open: boolean; onClose: () => void }) {

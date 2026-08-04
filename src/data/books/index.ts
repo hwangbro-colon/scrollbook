@@ -1,8 +1,9 @@
 import type { Book } from "../../types/book";
 import unsuJoheunNal from "./unsu-joheun-nal.json";
 import byeoljubujeon from "./byeoljubujeon.json";
+import heungbujeonTeaser from "./heungbujeon-teaser.json";
 
-const RAW_BOOKS = [unsuJoheunNal, byeoljubujeon] as unknown as Book[];
+const RAW_BOOKS = [unsuJoheunNal, byeoljubujeon, heungbujeonTeaser] as unknown as Book[];
 
 // Safety net: a book is only ever loaded into the app if it's explicitly
 // marked public_domain AND declares where its text came from. Anything

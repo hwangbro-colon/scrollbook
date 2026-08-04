@@ -9,6 +9,9 @@ import { ScrollView } from "./views/ScrollView";
 import { FriendsView } from "./views/FriendsView";
 import { ReadingAssistView } from "./views/ReadingAssistView";
 import { MileageView } from "./views/MileageView";
+import { EssayDetailView } from "./views/EssayDetailView";
+import { ActivityView } from "./views/ActivityView";
+import { SettingsView } from "./views/SettingsView";
 
 const SPLASH_DURATION_MS = 900;
 
@@ -50,6 +53,14 @@ function App() {
           }
         />
         <Route
+          path="/scroll/:bookId"
+          element={
+            <PageTransition>
+              <ScrollView />
+            </PageTransition>
+          }
+        />
+        <Route
           path="/friends"
           element={
             <PageTransition>
@@ -70,6 +81,30 @@ function App() {
           element={
             <PageTransition>
               <MileageView />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/essay/:id"
+          element={
+            <PageTransition>
+              <EssayDetailView />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/activity"
+          element={
+            <PageTransition>
+              <ActivityView />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PageTransition>
+              <SettingsView />
             </PageTransition>
           }
         />

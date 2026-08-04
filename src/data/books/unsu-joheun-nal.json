@@ -11,6 +11,8 @@
   "isNew": false,
   "readCount": 1200,
   "addedAt": "2026-06-01T00:00:00.000Z",
+  "rankChangeDaily": 1,
+  "rankChangeWeekly": -1,
   "chapters": [
     {
       "chapterNumber": 1,
@@ -44,6 +46,13 @@
     "options": [
       { "text": "평소보다 인력거 손님이 많고 벌이가 좋아서", "correct": true },
       { "text": "오랜만에 눈이 내려서", "correct": false }
+    ]
+  },
+  "comprehensionQuizEasy": {
+    "question": "김 첨지의 직업은 무엇인가요?",
+    "options": [
+      { "text": "인력거꾼", "correct": true },
+      { "text": "어부", "correct": false }
     ]
   },
   "creativeQuiz": {

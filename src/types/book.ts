@@ -38,6 +38,8 @@ export type Book = {
   chapters: Chapter[];
   vocabCandidates: VocabCandidate[];
   comprehensionQuiz: ComprehensionQuiz;
+  /** Easier fallback shown by 복습퀴즈 after 2+ consecutive wrong answers on `comprehensionQuiz`. */
+  comprehensionQuizEasy?: ComprehensionQuiz;
   creativeQuiz: CreativeQuiz;
 
   // Mock fields simulating fields a real backend would compute —
@@ -46,4 +48,7 @@ export type Book = {
   isNew?: boolean;
   readCount?: number;
   addedAt?: string;
+  /** Mock ranking deltas for the 홈 trending list's 일간/주간 toggle. */
+  rankChangeDaily?: number;
+  rankChangeWeekly?: number;
 };
