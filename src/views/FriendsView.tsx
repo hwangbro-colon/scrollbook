@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Users, MessageSquareHeart, UserPlus, Lock } from "lucide-react";
+import { Users, MessageSquareHeart, GraduationCap, UserPlus, Lock, Plus } from "lucide-react";
 import { useAppStore } from "../store/appStore";
 import { useEssayStore, ESSAY_HIGHLIGHT_LIKE_THRESHOLD } from "../store/essayStore";
 import { useSimulatedAsync } from "../hooks/useSimulatedAsync";
+import { useToastStore } from "../store/toastStore";
 import { ScreenScroll } from "../components/common/ScreenScroll";
 import { SectionHead } from "../components/common/SectionHead";
 import { Avatar } from "../components/common/Avatar";
@@ -16,6 +17,14 @@ import { RowSkeleton, EssayRowSkeleton } from "../components/common/Skeleton";
 const COMMUNITY_CURRENT = 320;
 const COMMUNITY_GOAL = 500;
 
+// Mock 클래스 list — no real teacher/student account roles exist in this
+// prototype (single demo user, no auth), so the 선생님/학생 toggle below is
+// purely a display mode, not a real permission split.
+const CLASS_MOCK = [
+  { id: "cl1", name: "3학년 2반 국어", teacher: "김민지 선생님", members: 24 },
+  { id: "cl2", name: "방과후 독서토론반", teacher: "박서준 선생님", members: 12 },
+];
+
 function formatSchedule(iso?: string) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -26,12 +35,17 @@ export function FriendsView() {
   const clubs = useAppStore((s) => s.clubs);
   const toggleClub = useAppStore((s) => s.toggleClub);
   const setClubSchedule = useAppStore((s) => s.setClubSchedule);
+  const createClub = useAppStore((s) => s.createClub);
   const friends = useAppStore((s) => s.friends);
   const addFriend = useAppStore((s) => s.addFriend);
   const essays = useEssayStore((s) => s.essays);
   const highlightedEssay = essays.find((e) => e.likes >= ESSAY_HIGHLIGHT_LIKE_THRESHOLD);
+  const showToast = useToastStore((s) => s.show);
 
   const [scheduleDraft, setScheduleDraft] = useState<Record<string, string>>({});
+  const [newClubOpen, setNewClubOpen] = useState(false);
+  const [newClubName, setNewClubName] = useState("");
+  const [classMode, setClassMode] = useState<"teacher" | "student">("student");
 
   const clubsAsync = useSimulatedAsync({ delayMs: 650 });
   const essaysAsync = useSimulatedAsync({ delayMs: 700 });
@@ -45,7 +59,32 @@ export function FriendsView() {
       </div>
       <p className="mb-4 mt-0.5 text-xs text-[var(--color-ink-soft)]">소모임 · 커뮤니티 · 감상문공유 · 친구관리</p>
 
-      <SectionHead first title="소모임" action="더보기" />
+      <SectionHead first title="소모임" action={newClubOpen ? undefined : "+ 만들기"} onAction={() => setNewClubOpen(true)} />
+      {newClubOpen && (
+        <div className="mb-2.5 flex gap-1.5">
+          <input
+            value={newClubName}
+            onChange={(e) => setNewClubName(e.target.value)}
+            placeholder="소그룹 이름"
+            autoFocus
+            className="min-w-0 flex-1 border-[1.5px] border-[var(--color-line)] bg-[var(--color-paper)] px-2.5 py-1.5 text-[12px] text-[var(--color-ink)]"
+            style={{ borderRadius: "var(--radius-btn)" }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (!newClubName.trim()) return;
+              createClub(newClubName.trim());
+              setNewClubName("");
+              setNewClubOpen(false);
+            }}
+            className="flex-none bg-[var(--color-ink)] px-3 text-[11.5px] font-bold text-white"
+            style={{ borderRadius: "var(--radius-btn)" }}
+          >
+            <Plus size={14} strokeWidth={2} aria-hidden="true" />
+          </button>
+        </div>
+      )}
       {clubsAsync.status === "loading" && (
         <div>
           <RowSkeleton first />
@@ -148,6 +187,49 @@ export function FriendsView() {
         ) : (
           <EmptyState icon={MessageSquareHeart} title="공유된 감상문이 없어요" />
         ))}
+
+      <div className="mt-[22px] mb-3 flex items-baseline justify-between">
+        <h4 className="text-[15px] font-semibold text-[var(--color-ink)]" style={{ fontFamily: "var(--font-display)" }}>
+          클래스 <span className="text-[10px] font-bold text-[var(--color-ink-soft)]">Edu 전용</span>
+        </h4>
+        <div className="flex p-[3px]" style={{ background: "var(--color-paper-dim)", borderRadius: "var(--radius-btn)" }}>
+          {(["student", "teacher"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setClassMode(m)}
+              className={`px-2.5 py-1 text-[10.5px] font-bold ${classMode === m ? "bg-[var(--color-ink)] text-white" : "text-[var(--color-ink-soft)]"}`}
+              style={{ borderRadius: "var(--radius-chip)" }}
+            >
+              {m === "student" ? "학생" : "선생님"}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        {CLASS_MOCK.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => showToast(classMode === "teacher" ? "클래스 관리 화면은 준비 중이에요" : "클래스 참여 화면은 준비 중이에요")}
+            className="flex w-full items-center gap-3 border-[1.5px] border-[var(--color-ink)] p-3.5 text-left"
+            style={{ borderRadius: "var(--radius-card)" }}
+          >
+            <div
+              className="flex h-[38px] w-[38px] flex-none items-center justify-center border-[1.5px] border-[var(--color-ink)] bg-[var(--color-paper-dim)]"
+              style={{ borderRadius: "10px" }}
+            >
+              <GraduationCap size={17} strokeWidth={1.8} color="var(--color-ink)" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h5 className="text-[12.5px] font-bold text-[var(--color-ink)]">{c.name}</h5>
+              <p className="mt-0.5 text-[10.5px] text-[var(--color-ink-soft)]">
+                {c.teacher} · {c.members}명
+              </p>
+            </div>
+          </button>
+        ))}
+      </div>
 
       <SectionHead title="친구관리" action="친구 추가" onAction={addFriend} />
       {friends.length === 0 ? (

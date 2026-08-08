@@ -1,19 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { UIEvent } from "react";
-import { useParams } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Link, useParams, useSearchParams } from "react-router-dom";
+import { ChevronLeft, X } from "lucide-react";
 import { useAppStore } from "../store/appStore";
-import { useMileageStore } from "../store/mileageStore";
 import { useCountUp } from "../hooks/useCountUp";
 import { useBook } from "../hooks/useBook";
 import { CURRENT_BOOK_ID } from "../data/currentBook";
 import type { Chunk } from "../types/book";
 
-const COMPLETION_BONUS = 30;
-
+// No mileage, no end-of-book quiz — this reader is reading only, by design.
 type Mode = "reel" | "ebook";
 
-const QUIZ_SUBMIT_DELAY_MS = 450;
+// Reel-mode "peek picker" geometry: each row is shorter than the viewport
+// so the previous/next rows are visibly peeking above/below the active one,
+// like a wheel picker. Centering math depends on these two numbers only —
+// see EDGE_PAD_VH below for why.
+const CONTAINER_VH = 58;
+const ROW_VH = 22;
+const EDGE_PAD_VH = (CONTAINER_VH - ROW_VH) / 2; // padding so row 0 still centers at scrollTop 0
+// Active never exceeds 1 — scaling a row up beyond its natural width risks
+// clipping against the app shell's overflow-hidden edges, so all the size
+// contrast comes from how far REST shrinks down instead.
+const ACTIVE_SCALE = 1;
+const REST_SCALE = 0.55;
+const MIN_OPACITY = 0.32;
 
 type ReelCard =
   | { kind: "chunk"; chunk: Chunk; chapterNumber: number; chapterTitle: string; isFirstOfBook: boolean; isLastOfBook: boolean }
@@ -64,27 +74,24 @@ function HighlightedText({
 export function ScrollView() {
   const { bookId } = useParams<{ bookId?: string }>();
   const book = useBook(bookId ?? CURRENT_BOOK_ID);
+  const [searchParams] = useSearchParams();
 
-  const [mode, setMode] = useState<Mode>("reel");
+  const [mode, setMode] = useState<Mode>(searchParams.get("mode") === "ebook" ? "ebook" : "reel");
   const [progress, setProgress] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answered, setAnswered] = useState(false);
-  const [skipped, setSkipped] = useState(false);
-  const [submittingOptionIndex, setSubmittingOptionIndex] = useState<number | null>(null);
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
-  const [completionAwarded, setCompletionAwarded] = useState(false);
   const [addedWords, setAddedWords] = useState<Set<string>>(new Set());
   const [fontScale, setFontScale] = useState(100);
-  const quizResolved = answered || skipped;
 
-  const earnMileage = useMileageStore((s) => s.earnMileage);
   const addVocab = useAppStore((s) => s.addVocab);
   const setLastActivity = useAppStore((s) => s.setLastActivity);
-  const recordQuizAnswer = useAppStore((s) => s.recordQuizAnswer);
-  const wrongQuizCounts = useAppStore((s) => s.wrongQuizCounts);
   const displayedProgress = useCountUp(progress, 250);
   const reelRef = useRef<HTMLDivElement>(null);
   const ebookRef = useRef<HTMLDivElement>(null);
+  // Row content elements get their scale/opacity written directly (not via
+  // React state) so every scroll tick doesn't trigger a re-render — position
+  // itself is left entirely to native scroll, per the "only size changes"
+  // requirement.
+  const rowContentRefs = useRef<(HTMLDivElement | null)[]>([]);
   const restoredPositionRef = useRef(false);
 
   const vocabByWord = useMemo(() => new Map((book?.vocabCandidates ?? []).map((v) => [v.word, v.meaning])), [book]);
@@ -112,13 +119,9 @@ export function ScrollView() {
     return cards;
   }, [book]);
 
-  const totalSteps = reelCards.length + 1; // +1 for the comprehension-quiz card
+  const totalSteps = reelCards.length + 1; // +1 for the completion card
   const remainingSteps = Math.max(0, totalSteps - 1 - currentIndex);
   const remainingMinutes = book ? Math.max(0, Math.round(book.estimatedReadMinutes * (1 - progress / 100))) : 0;
-
-  const wrongCount = book ? (wrongQuizCounts[book.id] ?? 0) : 0;
-  const activeQuiz = wrongCount >= 2 && book?.comprehensionQuizEasy ? book.comprehensionQuizEasy : book?.comprehensionQuiz;
-  const usingEasyQuiz = wrongCount >= 2 && !!book?.comprehensionQuizEasy;
 
   useEffect(() => {
     if (!book) return;
@@ -158,47 +161,53 @@ export function ScrollView() {
     if (book) localStorage.setItem(`bb-fontscale-${book.id}`, String(next));
   };
 
+  // scale/opacity only, keyed off a continuous "row units from center" value
+  // — position comes purely from the browser's own scroll, never touched
+  // here, so growth never causes a jump.
+  const updateRowTransforms = (raw: number) => {
+    const from = Math.max(0, Math.floor(raw) - 3);
+    const to = Math.min(rowContentRefs.current.length - 1, Math.ceil(raw) + 3);
+    for (let i = from; i <= to; i++) {
+      const el = rowContentRefs.current[i];
+      if (!el) continue;
+      const t = Math.min(1, Math.abs(i - raw));
+      el.style.transform = `scale(${ACTIVE_SCALE - t * (ACTIVE_SCALE - REST_SCALE)})`;
+      el.style.opacity = String(1 - t * (1 - MIN_OPACITY));
+      el.style.zIndex = String(Math.round((1 - t) * 10));
+    }
+  };
+
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     const maxScroll = el.scrollHeight - el.clientHeight;
     const pct = maxScroll <= 0 ? 100 : Math.round((el.scrollTop / maxScroll) * 100);
-    const clamped = Math.min(100, Math.max(0, pct));
-    setProgress(clamped);
-    if (el.clientHeight > 0) {
-      const idx = Math.round(el.scrollTop / el.clientHeight);
+    setProgress(Math.min(100, Math.max(0, pct)));
+
+    if (mode === "reel") {
+      const rowPx = el.clientHeight * (ROW_VH / CONTAINER_VH);
+      if (rowPx <= 0) return;
+      const raw = el.scrollTop / rowPx;
+      updateRowTransforms(raw);
+      const idx = Math.round(raw);
       setCurrentIndex(idx);
       const card = reelCards[idx];
       if (book && card?.kind === "chunk") {
         setLastActivity({ type: "scroll", bookId: book.id, bookTitle: book.title, position: `${card.chapterNumber}장부터 이어보기` });
       }
-    }
-    if (clamped >= 100 && !completionAwarded) {
-      setCompletionAwarded(true);
-      earnMileage(COMPLETION_BONUS, "완독 보너스", "completion");
+    } else if (el.clientHeight > 0) {
+      setCurrentIndex(Math.round(el.scrollTop / el.clientHeight));
     }
   };
 
-  const handleSelectOption = (optionIndex: number) => {
-    if (quizResolved || submittingOptionIndex !== null || !book || !activeQuiz) return;
-    setSubmittingOptionIndex(optionIndex);
-    setTimeout(() => {
-      setSelectedOptionIndex(optionIndex);
-      setAnswered(true);
-      setSubmittingOptionIndex(null);
-      const isCorrect = !!activeQuiz.options[optionIndex]?.correct;
-      recordQuizAnswer(book.id, isCorrect);
-      // Participation earns mileage regardless of correctness — the point
-      // is engagement, not getting it right.
-      earnMileage(10, "이해도 체크 참여", "quiz");
-    }, QUIZ_SUBMIT_DELAY_MS);
-  };
-
-  const handleSkip = () => {
-    if (quizResolved || submittingOptionIndex !== null) return;
-    setSkipped(true);
-  };
+  // Paint the initial (pre-scroll) state once the reel's rows exist.
+  useEffect(() => {
+    if (mode !== "reel" || reelCards.length === 0) return;
+    const id = requestAnimationFrame(() => updateRowTransforms((reelRef.current?.scrollTop ?? 0) / (((reelRef.current?.clientHeight ?? 0) * ROW_VH) / CONTAINER_VH || 1)));
+    return () => cancelAnimationFrame(id);
+  }, [mode, reelCards.length]);
 
   const jumpToStart = () => {
+    setCurrentIndex(0);
     reelRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -231,8 +240,18 @@ export function ScrollView() {
     <>
       <div className="flex-none px-5 pb-2.5 pt-3.5">
         <div className="flex items-center justify-between">
-          <div className="text-[15px] font-semibold" style={{ fontFamily: "var(--font-display)" }}>
-            <b className="text-[var(--color-accent)]">{displayedProgress}%</b>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/scroll"
+              aria-label="스크롤 목록으로"
+              className="flex h-7 w-7 flex-none items-center justify-center border-[1.5px] border-[var(--color-ink)]"
+              style={{ borderRadius: "var(--radius-avatar)" }}
+            >
+              <ChevronLeft size={14} strokeWidth={2} color="var(--color-ink)" aria-hidden="true" />
+            </Link>
+            <div className="text-[15px] font-semibold" style={{ fontFamily: "var(--font-display)" }}>
+              <b className="text-[var(--color-accent)]">{displayedProgress}%</b>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {mode === "ebook" && (
@@ -273,6 +292,14 @@ export function ScrollView() {
                 </button>
               ))}
             </div>
+            <Link
+              to="/scroll"
+              aria-label="닫기"
+              className="flex h-7 w-7 flex-none items-center justify-center border-[1.5px] border-[var(--color-ink)]"
+              style={{ borderRadius: "var(--radius-avatar)" }}
+            >
+              <X size={14} strokeWidth={2} color="var(--color-ink)" aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <div className="mt-2.5 h-1 overflow-hidden rounded-full" style={{ background: "var(--color-paper-dim)" }}>
@@ -288,19 +315,22 @@ export function ScrollView() {
           ref={reelRef}
           onScroll={handleScroll}
           className="no-scrollbar h-[58vh] overflow-y-auto"
-          style={{ scrollSnapType: "y mandatory" }}
+          style={{ scrollSnapType: "y mandatory", paddingTop: `${EDGE_PAD_VH}vh`, paddingBottom: `${EDGE_PAD_VH}vh` }}
         >
-          {reelCards.map((card) =>
+          {reelCards.map((card, i) =>
             card.kind === "chunk" ? (
               <div
                 key={card.chunk.chunkId}
-                className="flex h-full flex-col justify-center bg-[var(--color-ink)] px-6 pb-[34px] pt-6 text-white"
-                style={{ scrollSnapAlign: "start" }}
+                ref={(el) => {
+                  rowContentRefs.current[i] = el;
+                }}
+                className="flex flex-col justify-center px-6 text-[var(--color-ink)]"
+                style={{ height: `${ROW_VH}vh`, scrollSnapAlign: "center", transformOrigin: "center", transform: `scale(${REST_SCALE})`, opacity: MIN_OPACITY }}
               >
-                <div className="mb-2.5 text-[10px] font-bold uppercase tracking-[.08em] opacity-55">
+                <div className="mb-2 text-[10px] font-bold uppercase tracking-[.08em] text-[var(--color-ink-soft)]">
                   {book.title} · {card.chapterTitle}
                 </div>
-                <p className="text-[16.5px] font-medium leading-[1.65]" style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}>
+                <p className="text-[13px] font-medium leading-[1.65]" style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}>
                   {card.chunk.sentences.map((s, si) => (
                     <span key={si}>
                       <HighlightedText
@@ -317,111 +347,56 @@ export function ScrollView() {
                   ))}
                 </p>
                 {card.isFirstOfBook && (
-                  <div className="mt-4 text-center text-[10px] tracking-[.04em] opacity-40">▲ 위로 넘겨서 계속 읽기 ▲</div>
+                  <div className="mt-3 text-center text-[10px] tracking-[.04em] text-[var(--color-ink-soft)]">▲ 위로 넘겨서 계속 읽기 ▲</div>
                 )}
                 {card.isLastOfBook && !card.isFirstOfBook && (
-                  <div className="mt-4 text-center text-[10px] tracking-[.04em] opacity-40">▲ 다 읽었어요, 위로 넘겨보세요 ▲</div>
+                  <div className="mt-3 text-center text-[10px] tracking-[.04em] text-[var(--color-ink-soft)]">▲ 다 읽었어요, 위로 넘겨보세요 ▲</div>
                 )}
               </div>
             ) : (
               <div
                 key={`preview-${card.nextChapterNumber}`}
-                className="flex h-full flex-col items-center justify-center bg-[var(--color-ink)] px-6 text-center text-white"
-                style={{ scrollSnapAlign: "start" }}
+                ref={(el) => {
+                  rowContentRefs.current[i] = el;
+                }}
+                className="flex flex-col items-center justify-center px-6 text-center text-[var(--color-ink)]"
+                style={{ height: `${ROW_VH}vh`, scrollSnapAlign: "center", transformOrigin: "center", transform: `scale(${REST_SCALE})`, opacity: MIN_OPACITY }}
               >
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-[.08em] opacity-55">다음 장 예고</p>
-                <h4 className="text-[18px] font-semibold" style={{ fontFamily: "var(--font-display)" }}>
+                <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-[var(--color-ink-soft)]">다음 장 예고</p>
+                <h4 className="text-[15px] font-semibold" style={{ fontFamily: "var(--font-display)" }}>
                   {card.nextChapterNumber}장 · {card.nextChapterTitle}
                 </h4>
-                <p className="mt-3 text-[10px] tracking-[.04em] opacity-40">▲ 위로 넘겨서 계속 읽기 ▲</p>
+                <p className="mt-2 text-[10px] tracking-[.04em] text-[var(--color-ink-soft)]">▲ 위로 넘겨서 계속 읽기 ▲</p>
               </div>
             ),
           )}
 
           <div
-            className="flex h-full flex-col justify-center bg-[var(--color-accent)] p-6 text-white"
-            style={{ scrollSnapAlign: "start" }}
+            ref={(el) => {
+              rowContentRefs.current[reelCards.length] = el;
+            }}
+            className="flex flex-col items-center justify-center px-6 text-center"
+            style={{
+              height: `${ROW_VH}vh`,
+              scrollSnapAlign: "center",
+              transformOrigin: "center",
+              transform: `scale(${REST_SCALE})`,
+              opacity: MIN_OPACITY,
+              color: "var(--color-accent)",
+            }}
           >
-            <div className="mb-2.5 text-[10px] font-bold uppercase tracking-[.08em] opacity-85">낭독 완료 · 이해도 체크 (선택)</div>
-            {usingEasyQuiz && (
-              <span
-                className="mb-2 inline-block w-fit text-[9px] font-extrabold uppercase tracking-[.03em]"
-                style={{ padding: "3px 8px", borderRadius: "var(--radius-chip)", background: "rgba(255,255,255,.22)" }}
-              >
-                쉬운 문제로 바꿨어요
-              </span>
-            )}
-            <h4
-              className="mb-4 whitespace-pre-line text-[16.5px] font-semibold leading-[1.5]"
-              style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}
-            >
-              {activeQuiz?.question}
+            <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[.08em] opacity-80">완독</div>
+            <h4 className="mb-4 text-[15px] font-semibold" style={{ fontFamily: "var(--font-display)" }}>
+              {book.title}, 다 읽었어요 🎉
             </h4>
-            <p className="mb-4 text-[11.5px] opacity-80">참여하면 마일리지 +10 적립돼요</p>
-            {activeQuiz?.options.map((opt, i) => {
-              const isSelected = selectedOptionIndex === i;
-              const showCorrect = answered && opt.correct;
-              const isSubmitting = submittingOptionIndex === i;
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  disabled={quizResolved || submittingOptionIndex !== null}
-                  onClick={() => handleSelectOption(i)}
-                  className="mb-2.5 flex w-full items-center justify-between text-left text-[13px] font-semibold"
-                  style={{
-                    padding: "11px 13px",
-                    borderRadius: "var(--radius-btn)",
-                    background: showCorrect ? "#fff" : "rgba(255,255,255,.16)",
-                    color: showCorrect ? "var(--color-accent)" : "#fff",
-                    border: showCorrect ? "none" : "1px solid rgba(255,255,255,.4)",
-                    opacity: answered && !isSelected && !showCorrect ? 0.55 : 1,
-                  }}
-                >
-                  {opt.text}
-                  {isSubmitting && <Loader2 size={14} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
-                </button>
-              );
-            })}
-            {!quizResolved && (
-              <button
-                type="button"
-                onClick={handleSkip}
-                className="mt-0.5 w-full text-center text-[11.5px] font-bold text-white"
-                style={{ padding: "9px 0", borderRadius: "var(--radius-btn)", border: "1px solid rgba(255,255,255,.5)" }}
-              >
-                건너뛰기
-              </button>
-            )}
-            {answered && (
-              <div className="mt-3">
-                {selectedOptionIndex !== null && activeQuiz?.options[selectedOptionIndex]?.correct ? (
-                  <div
-                    className="text-center text-[11.5px] font-extrabold"
-                    style={{ background: "#fff", color: "var(--color-accent)", borderRadius: "var(--radius-chip)", padding: "9px 10px" }}
-                  >
-                    +10 마일리지 적립 완료
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <p className="text-[12.5px] font-bold">괜찮아요, 다시 한번 볼까요?</p>
-                    <button
-                      type="button"
-                      onClick={jumpToStart}
-                      className="mt-2 text-[11px] font-bold underline"
-                    >
-                      ← 정답이 나온 부분으로 돌아가기
-                    </button>
-                    <div
-                      className="mt-2.5 text-center text-[11.5px] font-extrabold"
-                      style={{ background: "#fff", color: "var(--color-accent)", borderRadius: "var(--radius-chip)", padding: "9px 10px" }}
-                    >
-                      +10 마일리지 적립 완료 (참여만으로 지급돼요)
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={jumpToStart}
+              className="text-center text-[11.5px] font-bold"
+              style={{ padding: "8px 16px", borderRadius: "var(--radius-btn)", border: "1px solid currentColor" }}
+            >
+              처음부터 다시 읽기
+            </button>
           </div>
         </div>
       ) : (

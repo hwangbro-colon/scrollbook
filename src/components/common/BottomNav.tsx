@@ -10,22 +10,23 @@ const TABS = [
   { to: "/assist", label: "독서보조", icon: BookOpen, end: false },
 ] as const;
 
-// Floats over the scrollable content (glassmorphism only reads as "glass"
-// when there's something to blur behind it) — views add bottom clearance
-// (see ScreenScroll / ScrollView) so their last item isn't hidden under it.
+// Truly floating glass bar — inset from all edges (not just flush to the
+// bottom) and rounded on all 4 corners, positioned `absolute` within
+// AppShell so it sits *outside* every view's own scroll container. That
+// means it stays put above whatever's currently in view no matter how far
+// any tab is scrolled — nothing here needs to react to scroll position.
 export function BottomNav() {
   return (
     <nav
-      className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-around px-1 pt-[9px]"
+      className="absolute inset-x-3 z-10 flex items-center justify-around px-1 py-[9px]"
       style={{
-        paddingBottom: "calc(9px + env(safe-area-inset-bottom, 0px))",
-        borderTopLeftRadius: "var(--radius-card)",
-        borderTopRightRadius: "var(--radius-card)",
+        bottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
+        borderRadius: "var(--radius-card)",
         background: "var(--color-nav-cream-glass)",
-        backdropFilter: "blur(18px) saturate(180%)",
-        WebkitBackdropFilter: "blur(18px) saturate(180%)",
-        borderTop: "1px solid rgba(255,255,255,.55)",
-        boxShadow: "0 -6px 24px rgba(20,20,20,.08)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        border: "1px solid rgba(255,255,255,.55)",
+        boxShadow: "0 8px 28px rgba(20,20,20,.16)",
       }}
     >
       {TABS.map(({ to, label, icon: Icon, end }) => (

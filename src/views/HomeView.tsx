@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, MessageSquareHeart, TrendingUp } from "lucide-react";
 import { useAppStore } from "../store/appStore";
+import { useProfileStore } from "../store/profileStore";
 import { useEssayStore, ESSAY_HIGHLIGHT_LIKE_THRESHOLD } from "../store/essayStore";
 import { useSimulatedAsync } from "../hooks/useSimulatedAsync";
 import { useBookList } from "../hooks/useBookList";
 import { getRecommendReason, RECOMMEND_REASON_LABEL } from "../lib/recommend";
 import { ScreenScroll } from "../components/common/ScreenScroll";
+import { HomeHeroCarousel } from "../components/common/HomeHeroCarousel";
 import { DailyChallengeCard } from "../components/common/DailyChallengeCard";
 import { StreakGraceBanner } from "../components/common/StreakGraceBanner";
 import { SectionHead } from "../components/common/SectionHead";
@@ -14,8 +16,8 @@ import { EssayRow } from "../components/common/EssayRow";
 import { EmptyState } from "../components/common/EmptyState";
 import { ErrorCard } from "../components/common/ErrorCard";
 import { BookRowSkeleton, EssayRowSkeleton, Skeleton } from "../components/common/Skeleton";
-import { DEMO_USER_NAME } from "../data/homeMock";
 import { BOOKS } from "../data/books";
+import { SOLO_BOOKS_MOCK } from "../data/soloProgress";
 import type { Book } from "../types/book";
 
 function formatCount(n: number) {
@@ -96,6 +98,7 @@ function RecommendedBookCard({ book, reason }: { book: Book; reason: ReturnType<
 }
 
 export function HomeView() {
+  const nickname = useProfileStore((s) => s.nickname);
   const streak = useAppStore((s) => s.streak);
   const dailyChallengeDone = useAppStore((s) => s.dailyChallengeDone);
   const dismissedBookIds = useAppStore((s) => s.dismissedBookIds);
@@ -115,9 +118,11 @@ export function HomeView() {
 
   return (
     <ScreenScroll>
-      <div>
+      <HomeHeroCarousel />
+
+      <div className="mt-4">
         <h1 className="text-[23px] font-semibold leading-[1.25] text-[var(--color-ink)]" style={{ fontFamily: "var(--font-display)" }}>
-          안녕, {DEMO_USER_NAME} 👋
+          안녕, {nickname} 👋
         </h1>
         <p className="mt-[3px] text-[12.5px] text-[var(--color-ink-soft)]">오늘도 5분만 같이 읽어볼까요?</p>
       </div>
@@ -143,7 +148,7 @@ export function HomeView() {
 
       {lastActivity && (
         <Link
-          to={lastActivity.type === "scroll" ? `/scroll/${lastActivity.bookId}` : "/reading"}
+          to={lastActivity.type === "scroll" ? `/scroll/${lastActivity.bookId}` : "/reading/solo"}
           className="mt-3 flex items-center justify-between px-4 py-[13px] text-white"
           style={{ borderRadius: "var(--radius-card)", background: "var(--color-ink)" }}
         >
@@ -160,6 +165,35 @@ export function HomeView() {
       )}
 
       <DailyChallengeCard variant="hero" />
+
+      <SectionHead title="지금 읽고 있는 책" />
+      {SOLO_BOOKS_MOCK.length === 0 ? (
+        <EmptyState icon={TrendingUp} title="아직 읽고 있는 책이 없어요" description="스크롤이나 낭독으로 새 책을 시작해보세요" />
+      ) : (
+        (() => {
+          const current = SOLO_BOOKS_MOCK[0];
+          return (
+            <Link
+              to={`/scroll/${current.bookId}`}
+              className="flex items-center gap-3 border-[1.5px] border-[var(--color-ink)] p-3.5"
+              style={{ borderRadius: "var(--radius-card)" }}
+            >
+              <div
+                className="h-[58px] w-11 flex-none"
+                style={{ borderRadius: "4px", background: BOOKS.find((b) => b.id === current.bookId)?.coverColor ?? "var(--color-paper-dim)" }}
+              />
+              <div className="min-w-0 flex-1">
+                <h5 className="text-[13px] font-bold text-[var(--color-ink)]">{current.title}</h5>
+                <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: "var(--color-paper-dim)" }}>
+                  <div className="h-full" style={{ width: `${current.pct}%`, background: "var(--color-accent)" }} />
+                </div>
+                <p className="mt-1 text-[10.5px] text-[var(--color-ink-soft)]">{current.pct}% 읽음</p>
+              </div>
+              <ChevronRight size={18} strokeWidth={2.2} color="var(--color-ink-soft)" aria-hidden="true" />
+            </Link>
+          );
+        })()
+      )}
 
       <SectionHead title="책 추천" action="더보기" />
       {books.status === "loading" && <BookRowSkeleton />}

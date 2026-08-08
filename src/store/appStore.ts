@@ -65,6 +65,7 @@ type AppState = {
   completeDailyChallenge: () => void;
   addVocab: (entry: VocabEntry) => void;
   toggleClub: (id: string) => void;
+  createClub: (name: string) => void;
   setClubSchedule: (id: string, nextSchedule: string) => void;
   addFriend: () => void;
   dismissBook: (bookId: string) => void;
@@ -135,6 +136,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     })),
   setClubSchedule: (id, nextSchedule) =>
     set((s) => ({ clubs: s.clubs.map((c) => (c.id === id ? { ...c, nextSchedule } : c)) })),
+  createClub: (name) =>
+    set((s) => ({
+      clubs: [
+        { id: `c-new-${Date.now()}`, emoji: "✨", name, caption: "멤버 1명 · 방금 만들어짐", joined: true, isHost: true, currentMembers: 1 },
+        ...s.clubs,
+      ],
+    })),
   addFriend: () => {
     const dummy = DUMMY_FRIENDS[friendCounter % DUMMY_FRIENDS.length];
     friendCounter += 1;

@@ -5,6 +5,19 @@
   color-scheme: light;
 }
 
+/* Dark mode — toggled via themeStore, which flips this class on <html>.
+   Only ink/paper/line swap; accent stays the same everywhere. */
+:root.dark {
+  color-scheme: dark;
+  --color-ink: #F2F0EC;
+  --color-ink-soft: #A8A49C;
+  --color-paper: #1B1A18;
+  --color-paper-dim: #26241F;
+  --color-line: #3A3733;
+  --color-nav-cream: #201E1A;
+  --color-nav-cream-glass: rgba(32,30,26,.62);
+}
+
 body {
   margin: 0;
   font-family: var(--font-body);

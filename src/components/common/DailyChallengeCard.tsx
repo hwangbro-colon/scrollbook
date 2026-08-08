@@ -128,7 +128,7 @@ export function DailyChallengeCard({ variant }: { variant: "hero" | "compact" })
           style={{ borderRadius: "var(--radius-btn)" }}
         >
           {submitting && <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
-          {submitting ? "처리중..." : "시작하기"}
+          {submitting ? "처리중..." : "시작하기 →"}
         </button>
       )}
     </div>
