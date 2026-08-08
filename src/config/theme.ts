@@ -30,7 +30,7 @@ export const theme = {
   // Applied to every pill button globally — see the `[style*=...]` rule in
   // index.css, which targets any element styled with `--radius-btn` rather
   // than requiring a shared Button component.
-  shadowBtn: "0 2px 6px rgba(33,34,36,.18)",
+  shadowBtn: "0 1px 3px rgba(33,34,36,.10)",
   fonts: {
     display: "'Fredoka', sans-serif", // headlines — rounded, casual
     body: "'Inter', sans-serif", // body text

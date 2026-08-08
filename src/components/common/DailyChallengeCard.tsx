@@ -89,33 +89,33 @@ export function DailyChallengeCard({ variant }: { variant: "hero" | "compact" })
 
   return (
     <div
-      className="mt-5 bg-[var(--color-accent-tint)] p-[22px]"
+      className="mt-5 bg-[var(--color-accent-tint)] p-3.5"
       style={{ borderRadius: "14px", border: "2px solid var(--color-accent)" }}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <div
-          className="flex h-16 w-16 flex-none items-center justify-center border-[1.5px] border-[var(--color-accent)] bg-[var(--color-paper)]"
-          style={{ borderRadius: "16px" }}
+          className="flex h-11 w-11 flex-none items-center justify-center border-[1.5px] border-[var(--color-accent)] bg-[var(--color-paper)]"
+          style={{ borderRadius: "12px" }}
         >
-          <ClockIcon size={28} />
+          <ClockIcon size={19} />
         </div>
         <div className="flex-1">
-          <span className="mb-[3px] block text-[9.5px] font-extrabold uppercase tracking-[.05em] text-[var(--color-accent)]">
+          <span className="mb-[2px] block text-[8.5px] font-extrabold uppercase tracking-[.05em] text-[var(--color-accent)]">
             Today
           </span>
-          <h3 className="text-lg font-semibold text-[var(--color-ink)]" style={{ fontFamily: "var(--font-display)" }}>
+          <h3 className="text-[13px] font-semibold text-[var(--color-ink)]" style={{ fontFamily: "var(--font-display)" }}>
             데일리 5분 읽기
           </h3>
-          <p className="text-xs text-[var(--color-ink-soft)]">완료하면 마일리지 지급</p>
+          <p className="text-[10px] text-[var(--color-ink-soft)]">완료하면 마일리지 지급</p>
         </div>
       </div>
       {dailyChallengeDone ? (
-        <div className="mt-4 text-center">
-          <p className="text-[15px] font-bold text-[var(--color-accent)]">오늘의 챌린지를 완료했어요</p>
-          <p className="mt-1 text-[11px] font-semibold text-[var(--color-ink-soft)]">
+        <div className="mt-3 text-center">
+          <p className="text-[13px] font-bold text-[var(--color-accent)]">오늘의 챌린지를 완료했어요</p>
+          <p className="mt-1 text-[10.5px] font-semibold text-[var(--color-ink-soft)]">
             내일 오전 6시에 초기화 · <span className="font-mono">{resetCountdown}</span> 남음
           </p>
-          <p className="mt-2.5 select-none text-[11.5px] text-[var(--color-ink-soft)] blur-[3px]" aria-hidden="true">
+          <p className="mt-2 select-none text-[10.5px] text-[var(--color-ink-soft)] blur-[3px]" aria-hidden="true">
             내일의 챌린지: {TOMORROW_PREVIEW}
           </p>
         </div>
@@ -124,10 +124,10 @@ export function DailyChallengeCard({ variant }: { variant: "hero" | "compact" })
           type="button"
           onClick={handleStart}
           disabled={submitting}
-          className="ml-auto mt-4 flex items-center justify-center gap-1.5 bg-[var(--color-accent)] px-5 py-2 text-[12.5px] font-bold text-white disabled:opacity-70"
+          className="ml-auto mt-3 flex items-center justify-center gap-1 bg-[var(--color-accent)] px-4 py-1.5 text-[11px] font-bold text-white disabled:opacity-70"
           style={{ borderRadius: "var(--radius-btn)" }}
         >
-          {submitting && <Loader2 size={14} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+          {submitting && <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
           {submitting ? "처리중..." : "시작하기 →"}
         </button>
       )}
