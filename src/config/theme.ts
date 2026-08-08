@@ -19,11 +19,11 @@ export const theme = {
     navCream: "#FEF2E1",
     navCreamGlass: "rgba(254,242,225,.62)",
   },
-  // Kept in the 6-10px range everywhere on purpose — no pill/fully-rounded
-  // shapes anywhere in the app.
+  // Cards/badges stay 6-10px (squared, not pill). Buttons are the one
+  // exception — full pill per Toss UI reference.
   radius: {
     card: "10px",
-    btn: "8px",
+    btn: "999px",
     chip: "6px",
     avatar: "8px",
   },
