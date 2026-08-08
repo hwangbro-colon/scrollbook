@@ -416,10 +416,9 @@ export function ScrollView() {
         </div>
       )}
 
-      <div className="flex flex-none justify-center border-t border-[var(--color-line)] px-5 py-2.5 text-[11px] font-semibold text-[var(--color-ink-soft)]">
-        예상 남은 시간 {remainingMinutes < 1 ? "1분 미만" : `${remainingMinutes}분`} · {remainingSteps}페이지 남음
-      </div>
-      <p className="flex-none pb-[88px] text-center text-[10px] text-[var(--color-ink-soft)]/60">출처: {book.source}</p>
+      <p className="flex-none px-5 pb-[88px] pt-1 text-center text-[9px] leading-[1.4] text-[var(--color-ink-soft)]">
+        {remainingMinutes < 1 ? "1분 미만" : `${remainingMinutes}분`} 남음 · {remainingSteps}페이지 · 출처: {book.source}
+      </p>
     </>
   );
 }

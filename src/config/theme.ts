@@ -5,11 +5,11 @@
 
 export const theme = {
   colors: {
-    ink: "#141414", // primary text / default foreground
-    inkSoft: "#5B5955", // secondary/muted text
+    ink: "#212224", // primary text / default foreground
+    inkSoft: "#A4A3A5", // secondary/muted text
     paper: "#FFFFFF", // primary background
-    paperDim: "#F7F5F1", // secondary/section background
-    line: "#E7E4DE", // borders/dividers
+    paperDim: "#E6E9ED", // secondary/section background
+    line: "#E6E9ED", // borders/dividers
     // Single accent color for the whole app — used only for CTAs, streaks,
     // "new" tags, #1 ranking, mileage rewards, quiz cards, etc.
     accent: "#FF6A1A",
