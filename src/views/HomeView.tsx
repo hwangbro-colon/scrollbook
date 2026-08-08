@@ -135,7 +135,7 @@ export function HomeView() {
           className="flex h-5 w-5 items-center justify-center text-[10px]"
           style={{
             borderRadius: "var(--radius-chip)",
-            background: "linear-gradient(155deg,#FFB37A,var(--color-accent) 65%)",
+            background: "linear-gradient(155deg,var(--color-ink-soft),var(--color-accent) 65%)",
             boxShadow: "inset -2px -2px 4px rgba(0,0,0,.18)",
           }}
         >
@@ -278,7 +278,7 @@ export function HomeView() {
                   <div className="flex-1 text-[12.5px] font-semibold text-[var(--color-ink)]">{book.title}</div>
                   <div
                     className="w-8 text-right text-[10.5px] font-bold"
-                    style={{ color: !change ? "var(--color-ink-soft)" : change > 0 ? "var(--color-accent)" : "#4B7BEC" }}
+                    style={{ color: !change ? "var(--color-ink-soft)" : change > 0 ? "var(--color-accent)" : "var(--color-ink)" }}
                   >
                     {!change ? "-" : change > 0 ? `▲${change}` : `▼${Math.abs(change)}`}
                   </div>

@@ -1,7 +1,7 @@
 // Single source of truth for brand colors, corner-radius tokens, fonts,
-// logo path, and app copy. Accent is orange per explicit direction — the
-// rest of the palette still follows the design-fidelity reference
-// (bookbook_prototype_v4.html).
+// logo path, and app copy. Monochrome palette per explicit direction — every
+// color in the app (including what used to be the orange accent) resolves
+// to one of these three tones plus white, no exceptions.
 
 export const theme = {
   colors: {
@@ -10,14 +10,14 @@ export const theme = {
     paper: "#FFFFFF", // primary background
     paperDim: "#E6E9ED", // secondary/section background
     line: "#E6E9ED", // borders/dividers
-    // Single accent color for the whole app — used only for CTAs, streaks,
-    // "new" tags, #1 ranking, mileage rewards, quiz cards, etc.
-    accent: "#FF6A1A",
-    accentTint: "#FFE6D6",
-    // Flat cream used only for the topbar background and as the base tone
-    // for the bottom nav's glass tint (never used as a general surface).
-    navCream: "#FEF2E1",
-    navCreamGlass: "rgba(254,242,225,.62)",
+    // "Accent" is now just ink — CTAs, streaks, "new" tags, #1 ranking,
+    // mileage rewards, etc. all read as the same dark tone as body text.
+    accent: "#212224",
+    accentTint: "#E6E9ED",
+    // Topbar/bottom-nav surface — same light gray as paperDim, just with a
+    // translucent variant for the nav's glass blur.
+    navCream: "#E6E9ED",
+    navCreamGlass: "rgba(230,233,237,.62)",
   },
   // Cards/badges stay 6-10px (squared, not pill). Buttons are the one
   // exception — full pill per Toss UI reference.

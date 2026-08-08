@@ -75,7 +75,7 @@ export function LibraryVocabView() {
               placeholder="새 단어"
               aria-invalid={!!formError}
               className="min-w-0 flex-1 border-0 border-b-[1.5px] bg-transparent py-1.5 text-[12px] text-[var(--color-ink)] outline-none"
-              style={{ borderColor: formError ? "#D64545" : "var(--color-line)" }}
+              style={{ borderColor: formError ? "var(--color-ink)" : "var(--color-line)" }}
             />
             <input
               value={meaning}
@@ -86,7 +86,7 @@ export function LibraryVocabView() {
               placeholder="뜻"
               aria-invalid={!!formError}
               className="min-w-0 flex-1 border-0 border-b-[1.5px] bg-transparent py-1.5 text-[12px] text-[var(--color-ink)] outline-none"
-              style={{ borderColor: formError ? "#D64545" : "var(--color-line)" }}
+              style={{ borderColor: formError ? "var(--color-ink)" : "var(--color-line)" }}
             />
             <button
               type="button"
@@ -98,7 +98,7 @@ export function LibraryVocabView() {
               추가
             </button>
           </div>
-          {formError && <p className="mb-2 text-[11px] font-semibold text-[#D64545]">{formError}</p>}
+          {formError && <p className="mb-2 text-[11px] font-semibold text-[var(--color-ink)]">{formError}</p>}
 
           {vocabList.length === 0 ? (
             <EmptyState

@@ -60,7 +60,7 @@ function HighlightedText({
               if (!added) onTap(part, vocabByWord.get(part)!);
             }}
             className="inline underline decoration-dotted underline-offset-4"
-            style={{ color: added ? "#8CFF9A" : "var(--color-accent)" }}
+            style={{ color: added ? "var(--color-ink-soft)" : "var(--color-accent)" }}
           >
             {part}
             {added && " ✓"}
