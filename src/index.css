@@ -1,5 +1,9 @@
-@import "tailwindcss";
+/* Must precede @import "tailwindcss" — Tailwind's own @import expands into
+   plain CSS at build time, and any @import placed after non-@import content
+   is invalid per spec (browsers silently drop it, which is exactly the
+   "@import must precede all other statements" warning this was causing). */
 @import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
 
 :root {
   color-scheme: light;
