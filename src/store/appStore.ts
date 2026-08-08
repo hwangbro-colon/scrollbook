@@ -18,9 +18,8 @@ export type LastActivity = { type: "read" | "scroll"; bookId: string; bookTitle:
 
 let friendCounter = 0;
 const DUMMY_FRIENDS = [
-  { name: "최다인", streakLabel: "1일 연속 참여중" },
-  { name: "오세훈", streakLabel: "1일 연속 참여중" },
-  { name: "장예린", streakLabel: "1일 연속 참여중" },
+  { name: "준민", streakLabel: "1일 연속 참여중" },
+  { name: "준서", streakLabel: "1일 연속 참여중" },
 ];
 
 let recordingCounter = 0;

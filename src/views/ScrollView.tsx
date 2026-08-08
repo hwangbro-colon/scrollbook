@@ -330,7 +330,7 @@ export function ScrollView() {
                 <div className="mb-2 text-[10px] font-bold uppercase tracking-[.08em] text-[var(--color-ink-soft)]">
                   {book.title} · {card.chapterTitle}
                 </div>
-                <p className="text-[13px] font-medium leading-[1.65]" style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}>
+                <p className="text-[19px] font-semibold leading-[1.6]" style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}>
                   {card.chunk.sentences.map((s, si) => (
                     <span key={si}>
                       <HighlightedText

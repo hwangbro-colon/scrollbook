@@ -1,1 +1,1 @@
-export const DEMO_USER_NAME = "서연";
+export const DEMO_USER_NAME = "김낭독";

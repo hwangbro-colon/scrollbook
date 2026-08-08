@@ -21,8 +21,8 @@ const COMMUNITY_GOAL = 500;
 // prototype (single demo user, no auth), so the 선생님/학생 toggle below is
 // purely a display mode, not a real permission split.
 const CLASS_MOCK = [
-  { id: "cl1", name: "3학년 2반 국어", teacher: "김민지 선생님", members: 24 },
-  { id: "cl2", name: "방과후 독서토론반", teacher: "박서준 선생님", members: 12 },
+  { id: "cl1", name: "3학년 2반 국어", teacher: "김독서 선생님", members: 24 },
+  { id: "cl2", name: "방과후 독서토론반", teacher: "박낭독 선생님", members: 12 },
 ];
 
 function formatSchedule(iso?: string) {

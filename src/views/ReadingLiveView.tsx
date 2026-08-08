@@ -11,7 +11,7 @@ const GROUP_SESSION_MOCK = {
   bookId: "byeoljubujeon-classic",
   chapterNumber: 2,
   participants: [
-    { name: "지호", initial: "지", isOnline: true },
+    { name: "준민", initial: "준", isOnline: true },
     { name: "휘람", initial: "휘", isOnline: true },
     { name: "윤우", initial: "윤", isOnline: false },
   ],
