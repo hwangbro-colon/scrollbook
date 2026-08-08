@@ -24,9 +24,14 @@
 
 /* Every pill button sets `border-radius: var(--radius-btn)` inline (there's
    no shared Button component) — matching on that substring lets one rule
-   shadow all of them app-wide instead of editing every call site. */
+   style all of them app-wide instead of editing every call site.
+   Shadow + backdrop-blur give the same "floating glass" read as BottomNav,
+   without touching `position` — these stay in normal flow and scroll with
+   the page, they just don't sit flush against it. */
 [style*="var(--radius-btn)"] {
   box-shadow: var(--shadow-btn);
+  backdrop-filter: blur(6px) saturate(160%);
+  -webkit-backdrop-filter: blur(6px) saturate(160%);
 }
 
 body {
