@@ -124,10 +124,10 @@ export function DailyChallengeCard({ variant }: { variant: "hero" | "compact" })
           type="button"
           onClick={handleStart}
           disabled={submitting}
-          className="mt-4 flex w-full items-center justify-center gap-2 bg-[var(--color-accent)] py-3.5 text-[15px] font-extrabold text-white disabled:opacity-70"
+          className="ml-auto mt-4 flex items-center justify-center gap-1.5 bg-[var(--color-accent)] px-5 py-2 text-[12.5px] font-bold text-white disabled:opacity-70"
           style={{ borderRadius: "var(--radius-btn)" }}
         >
-          {submitting && <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+          {submitting && <Loader2 size={14} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
           {submitting ? "처리중..." : "시작하기 →"}
         </button>
       )}

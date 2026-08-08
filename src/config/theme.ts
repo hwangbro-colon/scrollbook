@@ -27,6 +27,10 @@ export const theme = {
     chip: "6px",
     avatar: "8px",
   },
+  // Applied to every pill button globally — see the `[style*=...]` rule in
+  // index.css, which targets any element styled with `--radius-btn` rather
+  // than requiring a shared Button component.
+  shadowBtn: "0 2px 6px rgba(33,34,36,.18)",
   fonts: {
     display: "'Fredoka', sans-serif", // headlines — rounded, casual
     body: "'Inter', sans-serif", // body text
@@ -55,6 +59,7 @@ export function applyTheme() {
   root.setProperty("--radius-btn", theme.radius.btn);
   root.setProperty("--radius-chip", theme.radius.chip);
   root.setProperty("--radius-avatar", theme.radius.avatar);
+  root.setProperty("--shadow-btn", theme.shadowBtn);
   root.setProperty("--font-display", theme.fonts.display);
   root.setProperty("--font-body", theme.fonts.body);
 }
