@@ -1,45 +1,38 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { UIEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { Bookmark, Share2 } from "lucide-react";
 import { Logo } from "../components/common/Logo";
 import { OnboardingPopup } from "../components/common/OnboardingPopup";
+import { ShareCardCapture } from "../components/common/ShareCardCapture";
+import type { ShareCardTarget } from "../components/common/ShareCardCapture";
 import { useOnboardingStore } from "../store/onboardingStore";
-import { useReadingSelectionStore } from "../store/readingSelectionStore";
-import { useBook } from "../hooks/useBook";
-import type { Chunk } from "../types/book";
+import { useSavedCardsStore } from "../store/savedCardsStore";
+import { useToastStore } from "../store/toastStore";
+import { buildFeed } from "../lib/feed";
+import type { FeedItem } from "../lib/feed";
 
-// 홈 탭 자체가 완독스크롤 리더 — 스펙엔 책 목록 화면이 따로 없고, 책장 탭에서
-// 책을 고르면(readingSelectionStore) 이 화면이 그 책으로 바로 갱신됨.
-// 이전 버전(ScrollView.tsx, 아직 라우팅은 안 되지만 파일은 남겨둠)에 있던
-// 전자책 모드/글자크기 조절/어휘 탭 클릭은 이번 스코프(스크롤 기능만)에서 제외.
+// 홈 탭 = 완독스크롤 피드. bookbook-scroll 원본 로직 그대로: 여러 책의 청크를
+// 이어붙인 세로 스냅 피드를 훑어보다가, "더 읽고 싶다면?"을 누르면 그 책의
+// 완독모드(/read/:bookId)로 들어간다. 공유/저장은 피드 카드 단위로 즉시 동작.
 
-// Peek-picker geometry — 위아래로 다음/이전 청크가 살짝 보이는 휠 형태.
 const CONTAINER_VH = 62;
-const ROW_VH = 24;
+const ROW_VH = 26;
 const EDGE_PAD_VH = (CONTAINER_VH - ROW_VH) / 2;
 const REST_SCALE = 0.55;
 const MIN_OPACITY = 0.3;
 
-type ReaderCard = { chunk: Chunk; chapterTitle: string };
-
 export function HomeScrollView() {
-  const selectedBookId = useReadingSelectionStore((s) => s.selectedBookId);
-  const book = useBook(selectedBookId ?? "");
+  const navigate = useNavigate();
   const hasSeenTutorial = useOnboardingStore((s) => s.hasSeenTutorial);
+  const { isSaved, toggleSave } = useSavedCardsStore();
+  const showToast = useToastStore((s) => s.show);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const feed = useMemo(() => buildFeed(), []);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [shareTarget, setShareTarget] = useState<ShareCardTarget | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  const cards = useMemo<ReaderCard[]>(() => {
-    if (!book) return [];
-    return book.chapters.flatMap((chapter) =>
-      chapter.chunks.map((chunk) => ({ chunk, chapterTitle: chapter.chapterTitle })),
-    );
-  }, [book]);
-
-  const total = cards.length;
-  const isComplete = currentIndex >= total && total > 0;
-  const readCount = Math.min(currentIndex + 1, total);
 
   const updateRowTransforms = (raw: number) => {
     const from = Math.max(0, Math.floor(raw) - 3);
@@ -59,25 +52,30 @@ export function HomeScrollView() {
     if (rowPx <= 0) return;
     const raw = el.scrollTop / rowPx;
     updateRowTransforms(raw);
-    setCurrentIndex(Math.round(raw));
+    setActiveIndex(Math.round(raw));
   };
 
-  useEffect(() => {
-    setCurrentIndex(0);
-    rowRefs.current = [];
-    containerRef.current?.scrollTo({ top: 0 });
-  }, [book?.id]);
+  const active: FeedItem | undefined = feed[activeIndex];
+  const nextItem: FeedItem | undefined = feed[activeIndex + 1];
 
-  useEffect(() => {
-    if (cards.length === 0) return;
-    const id = requestAnimationFrame(() => updateRowTransforms(0));
-    return () => cancelAnimationFrame(id);
-  }, [cards.length]);
+  const cardKey = (item: FeedItem) => `${item.book.id}:${item.chunk.chunkId}`;
 
-  const restart = () => {
-    setCurrentIndex(0);
-    containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  const handleShare = (item: FeedItem) => {
+    setShareTarget({ bookTitle: item.book.title, author: item.book.author, sentences: item.chunk.sentences });
   };
+
+  const handleSave = (item: FeedItem) => {
+    const nowSaved = toggleSave({ id: cardKey(item), bookId: item.book.id, bookTitle: item.book.title, author: item.book.author, chunkId: item.chunk.chunkId, sentences: item.chunk.sentences });
+    showToast(nowSaved ? "문장카드를 저장했어요" : "저장을 취소했어요");
+  };
+
+  if (feed.length === 0) {
+    return (
+      <div className="flex flex-1 items-center justify-center px-8 text-center text-[12.5px] text-[var(--color-ink-soft)]">
+        아직 스크롤할 콘텐츠가 없어요
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -91,93 +89,92 @@ export function HomeScrollView() {
             북북
           </span>
         </div>
-        {total > 0 && (
+        {active && (
           <span className="text-[12.5px] font-bold text-[var(--color-ink-soft)]">
-            {readCount}/{total}
+            {active.indexInBook + 1}/{active.totalInBook}
           </span>
         )}
       </div>
 
-      {!book ? (
-        <div className="flex flex-1 items-center justify-center px-8 text-center text-[12.5px] text-[var(--color-ink-soft)]">
-          책장에서 읽을 책을 골라보세요
-        </div>
-      ) : total === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-8 text-center">
-          <h3 className="text-base font-bold text-[var(--color-ink)]" style={{ fontFamily: "var(--font-display)" }}>
-            {book.title}
-          </h3>
-          <p className="text-[12px] text-[var(--color-ink-soft)]">이 책은 아직 스크롤 콘텐츠를 준비 중이에요.</p>
-        </div>
-      ) : (
-        <>
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="no-scrollbar min-h-0 flex-1 overflow-y-auto"
+        style={{ scrollSnapType: "y mandatory", paddingTop: `${EDGE_PAD_VH}vh`, paddingBottom: `${EDGE_PAD_VH}vh` }}
+      >
+        {feed.map((item, i) => (
           <div
-            ref={containerRef}
-            onScroll={handleScroll}
-            className="no-scrollbar min-h-0 flex-1 overflow-y-auto"
-            style={{ scrollSnapType: "y mandatory", paddingTop: `${EDGE_PAD_VH}vh`, paddingBottom: `${EDGE_PAD_VH}vh` }}
+            key={cardKey(item)}
+            ref={(el) => {
+              rowRefs.current[i] = el;
+            }}
+            className="flex flex-col justify-center px-7 text-[var(--color-ink)]"
+            style={{
+              height: `${ROW_VH}vh`,
+              scrollSnapAlign: "center",
+              transformOrigin: "center",
+              transform: `scale(${REST_SCALE})`,
+              opacity: MIN_OPACITY,
+            }}
           >
-            {cards.map((card, i) => (
-              <div
-                key={card.chunk.chunkId}
-                ref={(el) => {
-                  rowRefs.current[i] = el;
-                }}
-                className="flex flex-col justify-center px-7 text-[var(--color-ink)]"
-                style={{
-                  height: `${ROW_VH}vh`,
-                  scrollSnapAlign: "center",
-                  transformOrigin: "center",
-                  transform: `scale(${REST_SCALE})`,
-                  opacity: MIN_OPACITY,
-                }}
-              >
-                <div className="mb-2 text-[10px] font-bold uppercase tracking-[.06em] text-[var(--color-ink-soft)]">
-                  {book.title} · {card.chapterTitle}
-                </div>
-                <p className="text-[19px] font-semibold leading-[1.65]" style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}>
-                  {card.chunk.sentences.join(" ")}
-                </p>
-              </div>
-            ))}
-            <div
-              ref={(el) => {
-                rowRefs.current[cards.length] = el;
-              }}
-              className="flex flex-col items-center justify-center px-6 text-center"
-              style={{
-                height: `${ROW_VH}vh`,
-                scrollSnapAlign: "center",
-                transformOrigin: "center",
-                transform: `scale(${REST_SCALE})`,
-                opacity: MIN_OPACITY,
-              }}
-            >
-              <p
-                className="text-[26px] font-bold tracking-[.02em] text-[var(--color-accent)]"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                the end
-              </p>
-              {isComplete && (
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[.06em] text-[var(--color-ink-soft)]">
+              {item.book.title} · {item.chapterTitle}
+            </div>
+            <p className="text-[18px] font-semibold leading-[1.6]" style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}>
+              {item.chunk.sentences.join(" ")}
+            </p>
+            <p className="mt-2 text-[11px] text-[var(--color-ink-soft)]">
+              {item.book.author}
+            </p>
+
+            {i === activeIndex && (
+              <div className="mt-4 flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={restart}
-                  className="mt-4 border-[1.5px] border-[var(--color-ink)] px-4 py-2 text-[11.5px] font-bold text-[var(--color-ink)]"
-                  style={{ borderRadius: "var(--radius-btn)" }}
+                  onClick={() => navigate(`/read/${item.book.id}`)}
+                  className="flex-1 py-2.5 text-center text-[12px] font-extrabold text-white"
+                  style={{ borderRadius: "var(--radius-btn)", background: "var(--color-accent)" }}
                 >
-                  처음부터 다시 읽기
+                  더 읽고 싶다면?
                 </button>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => handleSave(item)}
+                  aria-label="문장카드 저장"
+                  className="flex h-9 w-9 flex-none items-center justify-center border-[1.5px] border-[var(--color-ink)]"
+                  style={{ borderRadius: "var(--radius-avatar)" }}
+                >
+                  <Bookmark
+                    size={15}
+                    strokeWidth={1.8}
+                    color="var(--color-ink)"
+                    fill={isSaved(cardKey(item)) ? "var(--color-ink)" : "none"}
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleShare(item)}
+                  aria-label="문장카드 공유"
+                  className="flex h-9 w-9 flex-none items-center justify-center border-[1.5px] border-[var(--color-ink)]"
+                  style={{ borderRadius: "var(--radius-avatar)" }}
+                >
+                  <Share2 size={15} strokeWidth={1.8} color="var(--color-ink)" aria-hidden="true" />
+                </button>
+              </div>
+            )}
           </div>
-          <p className="flex-none px-5 pb-[88px] pt-1 text-center text-[9px] leading-[1.4] text-[var(--color-ink-soft)]">
-            출처: {book.source}
-          </p>
-        </>
+        ))}
+      </div>
+
+      {nextItem && (
+        <p className="flex-none px-7 pb-[88px] pt-1 text-center text-[10.5px] text-[var(--color-ink-soft)] opacity-70">
+          다음: {nextItem.chunk.sentences[0]}
+        </p>
       )}
 
       {!hasSeenTutorial && <OnboardingPopup />}
+      {shareTarget && <ShareCardCapture target={shareTarget} onDone={() => setShareTarget(null)} />}
     </div>
   );
 }

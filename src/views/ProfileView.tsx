@@ -1,10 +1,12 @@
-import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
-import { Pencil, Camera, Check, X, Settings } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Pencil, Camera, Check, X, Settings, Bookmark, Trash2 } from "lucide-react";
 import { useProfileStore, COMPLETED_STATS_MOCK, type StatsPeriod } from "../store/profileStore";
 import { useToastStore } from "../store/toastStore";
+import { useReadingProgressStore } from "../store/readingProgressStore";
+import { useSavedCardsStore } from "../store/savedCardsStore";
 import { useBook } from "../hooks/useBook";
-import { COMPLETED_BOOKS_MOCK } from "../data/completedBooksMock";
+import { useBookList } from "../hooks/useBookList";
 import { ScreenScroll } from "../components/common/ScreenScroll";
 import { SectionHead } from "../components/common/SectionHead";
 import { MaskedField } from "../components/common/MaskedField";
@@ -27,10 +29,50 @@ function CompletedBookRow({ bookId, completedAt }: { bookId: string; completedAt
   );
 }
 
+function InProgressBookRow({ bookId, lastChunkIndex, totalChunks }: { bookId: string; lastChunkIndex: number; totalChunks: number }) {
+  const book = useBook(bookId);
+  const navigate = useNavigate();
+  if (!book) return null;
+  const pct = totalChunks > 0 ? Math.round(((lastChunkIndex + 1) / totalChunks) * 100) : 0;
+  return (
+    <button
+      type="button"
+      onClick={() => navigate(`/read/${bookId}`)}
+      className="flex w-full items-center gap-3 border-t border-[var(--color-line)] py-3 text-left first:border-t-0"
+    >
+      <div className="h-11 w-8 flex-none" style={{ borderRadius: "4px", background: book.coverColor }} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12.5px] font-bold text-[var(--color-ink)]">{book.title}</p>
+        <div className="mt-1 h-1 overflow-hidden rounded-full" style={{ background: "var(--color-paper-dim)" }}>
+          <div className="h-full" style={{ width: `${pct}%`, background: "var(--color-accent)" }} />
+        </div>
+      </div>
+      <span className="flex-none text-[10.5px] font-bold text-[var(--color-ink-soft)]">{pct}%</span>
+    </button>
+  );
+}
+
 export function ProfileView() {
   const { nickname, avatarUrl, bio, setNickname, setAvatarUrl, setBio } = useProfileStore();
   const showToast = useToastStore((s) => s.show);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const allBooks = useBookList();
+  const { progress, isCompleted, isInProgress } = useReadingProgressStore();
+  const { cards: savedCards, removeCard } = useSavedCardsStore();
+
+  const completedEntries = useMemo(
+    () =>
+      allBooks
+        .filter((b) => isCompleted(b.id))
+        .map((b) => ({ bookId: b.id, completedAt: progress[b.id]?.completedAt ?? new Date().toISOString().slice(0, 10) }))
+        .sort((a, b) => (a.completedAt < b.completedAt ? 1 : -1)),
+    [allBooks, isCompleted, progress],
+  );
+  const inProgressEntries = useMemo(
+    () => allBooks.filter((b) => isInProgress(b.id)).map((b) => ({ bookId: b.id, ...progress[b.id]! })),
+    [allBooks, isInProgress, progress],
+  );
 
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(nickname);
@@ -133,11 +175,11 @@ export function ProfileView() {
 
         <button
           type="button"
-          onClick={() => showToast(`지금까지 ${COMPLETED_BOOKS_MOCK.length}권 스크롤 완독했어요 🎉`)}
+          onClick={() => showToast(`지금까지 ${completedEntries.length}권 스크롤 완독했어요 🎉`)}
           className="mt-3 px-4 py-2 text-[12px] font-extrabold text-white"
           style={{ borderRadius: "var(--radius-btn)", background: "var(--color-accent)" }}
         >
-          {COMPLETED_BOOKS_MOCK.length}권 스크롤
+          {completedEntries.length}권 스크롤
         </button>
       </div>
 
@@ -183,12 +225,45 @@ export function ProfileView() {
       </div>
       <p className="mt-2 text-[10.5px] text-[var(--color-ink-soft)]">탭하면 전체 값을 확인할 수 있어요</p>
 
+      <SectionHead title="보관함 · 읽던 책" />
+      {inProgressEntries.length === 0 ? (
+        <p className="text-[12px] text-[var(--color-ink-soft)]">지금 읽고 있는 책이 없어요.</p>
+      ) : (
+        <div className="border-[1.5px] border-[var(--color-ink)] px-4" style={{ borderRadius: "var(--radius-card)" }}>
+          {inProgressEntries.map((entry) => (
+            <InProgressBookRow key={entry.bookId} bookId={entry.bookId} lastChunkIndex={entry.lastChunkIndex} totalChunks={entry.totalChunks} />
+          ))}
+        </div>
+      )}
+
+      <SectionHead title="보관함 · 저장한 문장카드" />
+      {savedCards.length === 0 ? (
+        <p className="text-[12px] text-[var(--color-ink-soft)]">홈 피드에서 문장카드를 저장해보세요.</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {savedCards.map((card) => (
+            <div key={card.id} className="flex items-start gap-2 border-[1.5px] border-[var(--color-ink)] p-3" style={{ borderRadius: "var(--radius-card)" }}>
+              <Bookmark size={14} strokeWidth={1.8} color="var(--color-accent)" className="mt-0.5 flex-none" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] leading-[1.5] text-[var(--color-ink)]">{card.sentences.join(" ")}</p>
+                <p className="mt-1 text-[10px] text-[var(--color-ink-soft)]">
+                  {card.bookTitle} · {card.author}
+                </p>
+              </div>
+              <button type="button" onClick={() => removeCard(card.id)} aria-label="저장 취소" className="flex-none">
+                <Trash2 size={14} strokeWidth={1.8} color="var(--color-ink-soft)" aria-hidden="true" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <SectionHead title="총 기록" />
-      {COMPLETED_BOOKS_MOCK.length === 0 ? (
+      {completedEntries.length === 0 ? (
         <p className="text-[12px] text-[var(--color-ink-soft)]">아직 완독한 책이 없어요.</p>
       ) : (
         <div className="border-[1.5px] border-[var(--color-ink)] px-4" style={{ borderRadius: "var(--radius-card)" }}>
-          {COMPLETED_BOOKS_MOCK.map((entry) => (
+          {completedEntries.map((entry) => (
             <CompletedBookRow key={entry.bookId} bookId={entry.bookId} completedAt={entry.completedAt} />
           ))}
         </div>

@@ -5,8 +5,7 @@ import { Logo } from "../components/common/Logo";
 import { BookCarousel } from "../components/common/BookCarousel";
 import { EmptyState } from "../components/common/EmptyState";
 import { useBookList } from "../hooks/useBookList";
-import { useReadingSelectionStore } from "../store/readingSelectionStore";
-import { COMPLETED_BOOKS_MOCK, ALMOST_DONE_BOOK_IDS } from "../data/completedBooksMock";
+import { useReadingProgressStore } from "../store/readingProgressStore";
 import type { Book } from "../types/book";
 
 type FilterTab = "전체" | "소설" | "고전" | "로맨스";
@@ -34,7 +33,7 @@ function deriveEngagementStats(book: Book) {
 
 export function LibraryView() {
   const navigate = useNavigate();
-  const selectBook = useReadingSelectionStore((s) => s.selectBook);
+  const { isCompleted, isInProgress } = useReadingProgressStore();
   const allBooks = useBookList();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterTab>("전체");
@@ -49,8 +48,10 @@ export function LibraryView() {
   }, [allBooks, query, filter]);
 
   const readableCount = allBooks.filter((b) => b.chapters.length > 0).length;
-  const completionRatePct = readableCount > 0 ? Math.round((COMPLETED_BOOKS_MOCK.length / readableCount) * 100) : 0;
-  const inProgressRatePct = readableCount > 0 ? Math.round((ALMOST_DONE_BOOK_IDS.length / readableCount) * 100) : 0;
+  const completedCount = allBooks.filter((b) => isCompleted(b.id)).length;
+  const inProgressCount = allBooks.filter((b) => isInProgress(b.id)).length;
+  const completionRatePct = readableCount > 0 ? Math.round((completedCount / readableCount) * 100) : 0;
+  const inProgressRatePct = readableCount > 0 ? Math.round((inProgressCount / readableCount) * 100) : 0;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -100,18 +101,11 @@ export function LibraryView() {
               items={filtered}
               renderCard={(book) => {
                 const stats = deriveEngagementStats(book);
-                const tag = COMPLETED_BOOKS_MOCK.some((c) => c.bookId === book.id)
-                  ? "완독"
-                  : ALMOST_DONE_BOOK_IDS.includes(book.id)
-                    ? "거의 다 읽은"
-                    : null;
+                const tag = isCompleted(book.id) ? "완독" : isInProgress(book.id) ? "거의 다 읽은" : null;
                 return (
                   <button
                     type="button"
-                    onClick={() => {
-                      selectBook(book.id);
-                      navigate("/");
-                    }}
+                    onClick={() => navigate(`/read/${book.id}`)}
                     className="flex w-full flex-col items-center gap-3 border-[1.5px] border-[var(--color-ink)] p-4 text-center"
                     style={{ borderRadius: "var(--radius-card)" }}
                   >
