@@ -31,6 +31,21 @@ function deriveEngagementStats(book: Book) {
   };
 }
 
+// 캐러셀 아래 검정 칸 9개(3x3) — 실제 카탈로그엔 아직 3권뿐이라, "전체 도서"
+// 그리드가 꽉 찬 모습을 보여주기 위한 목업 책 이름/진행률. 실제 카탈로그가
+// 늘어나면 이 배열을 지우고 useBookList() 결과로 교체하면 됨.
+const LIBRARY_GRID_MOCK: { title: string; percent: number }[] = [
+  { title: "메밀꽃 필 무렵", percent: 88 },
+  { title: "소나기", percent: 45 },
+  { title: "봄봄", percent: 100 },
+  { title: "동백꽃", percent: 62 },
+  { title: "무진기행", percent: 12 },
+  { title: "삼포 가는 길", percent: 0 },
+  { title: "날개", percent: 73 },
+  { title: "배따라기", percent: 30 },
+  { title: "사랑손님과 어머니", percent: 55 },
+];
+
 export function LibraryView() {
   const navigate = useNavigate();
   const { isCompleted, isInProgress } = useReadingProgressStore();
@@ -46,12 +61,6 @@ export function LibraryView() {
       return matchesFilter && matchesQuery;
     });
   }, [allBooks, query, filter]);
-
-  const readableCount = allBooks.filter((b) => b.chapters.length > 0).length;
-  const completedCount = allBooks.filter((b) => isCompleted(b.id)).length;
-  const inProgressCount = allBooks.filter((b) => isInProgress(b.id)).length;
-  const completionRatePct = readableCount > 0 ? Math.round((completedCount / readableCount) * 100) : 0;
-  const inProgressRatePct = readableCount > 0 ? Math.round((inProgressCount / readableCount) * 100) : 0;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -133,21 +142,18 @@ export function LibraryView() {
           )}
         </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-2 px-5">
-          {[
-            { label: "완독률", value: completionRatePct },
-            { label: "완독 임박", value: inProgressRatePct },
-            { label: "이번 주 참여", value: 3 },
-          ].map((stat) => (
+        <p className="mb-2.5 mt-6 px-5 text-[13px] font-bold text-[var(--color-ink)]" style={{ fontFamily: "var(--font-display)" }}>
+          전체 도서
+        </p>
+        <div className="grid grid-cols-3 gap-2 px-5">
+          {LIBRARY_GRID_MOCK.map((item) => (
             <div
-              key={stat.label}
-              className="flex flex-col items-center gap-1 py-4 text-white"
+              key={item.title}
+              className="flex aspect-[3/4] flex-col items-center justify-end gap-1 p-2 text-center text-white"
               style={{ borderRadius: "var(--radius-card)", background: "var(--color-ink)" }}
             >
-              <span className="text-[19px] font-bold" style={{ fontFamily: "var(--font-display)" }}>
-                {stat.value}%
-              </span>
-              <span className="text-[9.5px] text-white/65">{stat.label}</span>
+              <span className="text-[11px] font-bold leading-[1.3]">{item.title}</span>
+              <span className="text-[10.5px] font-bold text-[var(--color-accent)]">{item.percent}%</span>
             </div>
           ))}
         </div>
