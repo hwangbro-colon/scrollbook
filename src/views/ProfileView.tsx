@@ -14,17 +14,30 @@ import { theme } from "../config/theme";
 
 const PERIOD_LABEL: Record<StatsPeriod, string> = { month: "이번 달", year: "최근 1년", all: "전체" };
 
-function CompletedBookRow({ bookId, completedAt }: { bookId: string; completedAt: string }) {
+// 완독한 책이 삐뚤빼뚤 쌓인 스택 한 칸. 벽돌처럼 좌우로 들쭉날쭉 어긋나게
+// 보이도록, 칸마다 왼쪽/오른쪽 여백을 다르게 주는 패턴을 순서대로 돌려쓴다
+// (랜덤이면 리렌더될 때마다 흔들려서 고정 패턴으로 둠).
+const STAGGER_INSETS = [
+  { left: 0, right: 40 },
+  { left: 32, right: 0 },
+  { left: 12, right: 56 },
+  { left: 48, right: 8 },
+  { left: 0, right: 24 },
+  { left: 20, right: 0 },
+];
+
+function CompletedBookBar({ bookId, completedAt, index }: { bookId: string; completedAt: string; index: number }) {
   const book = useBook(bookId);
   if (!book) return null;
   const dateLabel = new Date(completedAt).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+  const inset = STAGGER_INSETS[index % STAGGER_INSETS.length];
   return (
-    <div className="flex items-center gap-3 border-t border-[var(--color-line)] py-3 first:border-t-0">
-      <div className="h-11 w-8 flex-none" style={{ borderRadius: "4px", background: book.coverColor }} />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[12.5px] font-bold text-[var(--color-ink)]">{book.title}</p>
-        <p className="text-[10.5px] text-[var(--color-ink-soft)]">{dateLabel} 완독</p>
-      </div>
+    <div
+      className="flex items-center justify-between gap-2 px-4 py-3 text-white"
+      style={{ marginLeft: inset.left, marginRight: inset.right, borderRadius: "var(--radius-chip)", background: "var(--color-ink)" }}
+    >
+      <span className="truncate text-[13px] font-bold">{book.title}</span>
+      <span className="flex-none text-[10px] text-white/70">{dateLabel}</span>
     </div>
   );
 }
@@ -262,9 +275,9 @@ export function ProfileView() {
       {completedEntries.length === 0 ? (
         <p className="text-[12px] text-[var(--color-ink-soft)]">아직 완독한 책이 없어요.</p>
       ) : (
-        <div className="border-[1.5px] border-[var(--color-ink)] px-4" style={{ borderRadius: "var(--radius-card)" }}>
-          {completedEntries.map((entry) => (
-            <CompletedBookRow key={entry.bookId} bookId={entry.bookId} completedAt={entry.completedAt} />
+        <div className="flex flex-col gap-[3px] p-3" style={{ borderRadius: "var(--radius-card)", background: "var(--color-accent)" }}>
+          {completedEntries.map((entry, i) => (
+            <CompletedBookBar key={entry.bookId} bookId={entry.bookId} completedAt={entry.completedAt} index={i} />
           ))}
         </div>
       )}
