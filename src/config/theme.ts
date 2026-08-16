@@ -1,44 +1,45 @@
 // Single source of truth for brand colors, corner-radius tokens, fonts,
-// logo path, and app copy. Monochrome palette per explicit direction — every
-// color in the app (including what used to be the orange accent) resolves
-// to one of these three tones plus white, no exceptions.
+// logo path, and app copy. Per the "실제 출시 범위(스크롤 기능만)" prototype
+// spec: exactly 3 tones — white / black / orange, nothing else. Surfaces
+// that need a lighter tint (card backgrounds, dividers) are black at low
+// opacity rather than a separate gray hex, so the app never actually
+// introduces a 4th color even where it reads as "light gray."
 
 export const theme = {
   colors: {
-    ink: "#212224", // primary text / default foreground
-    inkSoft: "#A4A3A5", // secondary/muted text
+    ink: "#0A0A0A", // near-black — primary text / default foreground
+    inkSoft: "rgba(10,10,10,.5)", // secondary/muted text — tint of ink, not a new color
     paper: "#FFFFFF", // primary background
-    paperDim: "#E6E9ED", // secondary/section background
-    line: "#E6E9ED", // borders/dividers
-    // "Accent" is now just ink — CTAs, streaks, "new" tags, #1 ranking,
-    // mileage rewards, etc. all read as the same dark tone as body text.
-    accent: "#212224",
-    accentTint: "#E6E9ED",
-    // Topbar/bottom-nav surface — same light gray as paperDim, just with a
-    // translucent variant for the nav's glass blur.
-    navCream: "#E6E9ED",
-    navCreamGlass: "rgba(230,233,237,.62)",
+    paperDim: "rgba(10,10,10,.04)", // secondary/section background — tint of ink
+    line: "rgba(10,10,10,.12)", // borders/dividers — tint of ink
+    accent: "#FF6A1A", // the one point color — CTAs, active tab, progress, streaks
+    accentTint: "rgba(255,106,26,.12)", // light accent surface (badges, active states)
+    // Topbar/bottom-nav surface — translucent paper (white) for the nav's glass blur.
+    navCream: "#FFFFFF",
+    navCreamGlass: "rgba(255,255,255,.82)",
   },
-  // Cards/badges stay 6-10px (squared, not pill). Buttons are the one
-  // exception — full pill per Toss UI reference.
+  // Spec: buttons are border-radius 0 with zero exceptions. Everything else
+  // (cards, avatars, chips/tags, stat boxes) stays in the 8-10px range.
   radius: {
     card: "10px",
-    btn: "999px",
-    chip: "6px",
+    btn: "0px",
+    chip: "8px",
     avatar: "8px",
   },
-  // Applied to every pill button globally — see the `[style*=...]` rule in
-  // index.css, which targets any element styled with `--radius-btn` rather
-  // than requiring a shared Button component.
-  shadowBtn: "0 1px 3px rgba(33,34,36,.10)",
   fonts: {
-    display: "'Fredoka', sans-serif", // headlines — rounded, casual
-    body: "'Inter', sans-serif", // body text
+    // 부크크 고딕 Bold/Light 예정 — 실제 폰트 파일(.woff2)이 아직 없어서
+    // 지금은 두께가 비슷한 시스템 산세리프로 대체함. 파일이 생기면:
+    //   1) public/fonts/BookkGothic-Bold.woff2, BookkGothic-Light.woff2 추가
+    //   2) src/index.css 맨 위 "부크크 고딕 자리" 주석 아래에 @font-face 2개 추가
+    //   3) 아래 display/body 값을 "'BookkGothic-Bold', ..." / "'BookkGothic-Light', ..."로 교체
+    // 그 외 코드는 전혀 안 건드려도 됨 — 이 파일이 유일한 참조 지점.
+    display: "-apple-system, BlinkMacSystemFont, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif", // 굵게(font-weight 700) 조합해서 씀 — 로고/제목/버튼
+    body: "-apple-system, BlinkMacSystemFont, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif", // 가볍게(font-weight 400) 조합해서 씀 — 본문
   },
   logo: "/image.files/logo.png",
   appName: "북북",
   appNameEn: "BOOKBOOK",
-  slogan: "함께 소리 내어, 함께 스크롤하며 읽어요",
+  slogan: "스크롤로, 가볍게 읽어요",
 } as const;
 
 // Applies the theme values as CSS custom properties on the document root,
@@ -59,7 +60,6 @@ export function applyTheme() {
   root.setProperty("--radius-btn", theme.radius.btn);
   root.setProperty("--radius-chip", theme.radius.chip);
   root.setProperty("--radius-avatar", theme.radius.avatar);
-  root.setProperty("--shadow-btn", theme.shadowBtn);
   root.setProperty("--font-display", theme.fonts.display);
   root.setProperty("--font-body", theme.fonts.body);
 }

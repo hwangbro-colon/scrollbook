@@ -10,16 +10,19 @@ export const COMPLETED_STATS_MOCK: Record<StatsPeriod, number> = { month: 3, yea
 type ProfileState = {
   nickname: string;
   avatarUrl: string | null;
+  bio: string;
   setNickname: (v: string) => void;
   setAvatarUrl: (v: string | null) => void;
+  setBio: (v: string) => void;
 };
 
-// Nickname/avatar live here (not local component state) so editing them in
-// ProfileView is reflected everywhere else they're shown — ProfilePanel's
-// header, HomeView's greeting.
+// Nickname/avatar/bio live here (not local component state) so editing them
+// in ProfileView is reflected everywhere else they're shown.
 export const useProfileStore = create<ProfileState>((set) => ({
   nickname: DEMO_USER_NAME,
   avatarUrl: null,
+  bio: "",
   setNickname: (v) => set({ nickname: v }),
   setAvatarUrl: (v) => set({ avatarUrl: v }),
+  setBio: (v) => set({ bio: v }),
 }));

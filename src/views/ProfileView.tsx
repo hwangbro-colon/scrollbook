@@ -1,17 +1,34 @@
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Pencil, Camera, Check, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Pencil, Camera, Check, X, Settings } from "lucide-react";
 import { useProfileStore, COMPLETED_STATS_MOCK, type StatsPeriod } from "../store/profileStore";
 import { useToastStore } from "../store/toastStore";
+import { useBook } from "../hooks/useBook";
+import { COMPLETED_BOOKS_MOCK } from "../data/completedBooksMock";
 import { ScreenScroll } from "../components/common/ScreenScroll";
 import { SectionHead } from "../components/common/SectionHead";
 import { MaskedField } from "../components/common/MaskedField";
+import { theme } from "../config/theme";
 
 const PERIOD_LABEL: Record<StatsPeriod, string> = { month: "이번 달", year: "최근 1년", all: "전체" };
 
+function CompletedBookRow({ bookId, completedAt }: { bookId: string; completedAt: string }) {
+  const book = useBook(bookId);
+  if (!book) return null;
+  const dateLabel = new Date(completedAt).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+  return (
+    <div className="flex items-center gap-3 border-t border-[var(--color-line)] py-3 first:border-t-0">
+      <div className="h-11 w-8 flex-none" style={{ borderRadius: "4px", background: book.coverColor }} />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[12.5px] font-bold text-[var(--color-ink)]">{book.title}</p>
+        <p className="text-[10.5px] text-[var(--color-ink-soft)]">{dateLabel} 완독</p>
+      </div>
+    </div>
+  );
+}
+
 export function ProfileView() {
-  const navigate = useNavigate();
-  const { nickname, avatarUrl, setNickname, setAvatarUrl } = useProfileStore();
+  const { nickname, avatarUrl, bio, setNickname, setAvatarUrl, setBio } = useProfileStore();
   const showToast = useToastStore((s) => s.show);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,15 +57,19 @@ export function ProfileView() {
 
   return (
     <ScreenScroll>
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        aria-label="뒤로가기"
-        className="mb-4 flex h-8 w-8 items-center justify-center border-[1.5px] border-[var(--color-ink)]"
-        style={{ borderRadius: "var(--radius-avatar)" }}
-      >
-        <ChevronLeft size={16} strokeWidth={2} color="var(--color-ink)" aria-hidden="true" />
-      </button>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[16px] font-bold text-[var(--color-ink)]" style={{ fontFamily: "var(--font-display)" }}>
+          {theme.appName}
+        </span>
+        <Link
+          to="/settings"
+          aria-label="설정"
+          className="flex h-8 w-8 items-center justify-center border-[1.5px] border-[var(--color-ink)]"
+          style={{ borderRadius: "var(--radius-avatar)" }}
+        >
+          <Settings size={15} strokeWidth={1.8} color="var(--color-ink)" aria-hidden="true" />
+        </Link>
+      </div>
 
       <div className="flex flex-col items-center">
         <button type="button" onClick={() => fileInputRef.current?.click()} aria-label="프로필 사진 변경" className="relative">
@@ -109,7 +130,26 @@ export function ProfileView() {
             </button>
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={() => showToast(`지금까지 ${COMPLETED_BOOKS_MOCK.length}권 스크롤 완독했어요 🎉`)}
+          className="mt-3 px-4 py-2 text-[12px] font-extrabold text-white"
+          style={{ borderRadius: "var(--radius-btn)", background: "var(--color-accent)" }}
+        >
+          {COMPLETED_BOOKS_MOCK.length}권 스크롤
+        </button>
       </div>
+
+      <SectionHead title="자기소개 / 목표" />
+      <textarea
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+        maxLength={80}
+        placeholder="한 줄로 목표나 소개를 적어보세요 (예: 이번 달 3권 완독하기)"
+        rows={3}
+        className="w-full resize-none border-[1.5px] border-[var(--color-ink)] p-3 text-[12.5px] text-[var(--color-ink)] outline-none"
+      />
 
       <SectionHead title="완독 통계" />
       <div className="flex p-[3px]" style={{ background: "var(--color-paper-dim)", borderRadius: "var(--radius-btn)" }}>
@@ -138,11 +178,21 @@ export function ProfileView() {
 
       <SectionHead title="개인정보" />
       <div className="border-[1.5px] border-[var(--color-ink)] px-4" style={{ borderRadius: "var(--radius-card)" }}>
-        <MaskedField label="이메일" value="juseoyeon@gmail.com" mode="partial" />
+        <MaskedField label="이메일" value="bukttak@example.com" mode="partial" />
         <MaskedField label="전화번호" value="010-1234-5678" mode="partial" />
-        <MaskedField label="계좌" value="123-456-789012" mode="full" />
       </div>
       <p className="mt-2 text-[10.5px] text-[var(--color-ink-soft)]">탭하면 전체 값을 확인할 수 있어요</p>
+
+      <SectionHead title="총 기록" />
+      {COMPLETED_BOOKS_MOCK.length === 0 ? (
+        <p className="text-[12px] text-[var(--color-ink-soft)]">아직 완독한 책이 없어요.</p>
+      ) : (
+        <div className="border-[1.5px] border-[var(--color-ink)] px-4" style={{ borderRadius: "var(--radius-card)" }}>
+          {COMPLETED_BOOKS_MOCK.map((entry) => (
+            <CompletedBookRow key={entry.bookId} bookId={entry.bookId} completedAt={entry.completedAt} />
+          ))}
+        </div>
+      )}
     </ScreenScroll>
   );
 }

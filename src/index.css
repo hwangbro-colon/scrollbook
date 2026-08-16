@@ -1,37 +1,10 @@
-/* Must precede @import "tailwindcss" — Tailwind's own @import expands into
-   plain CSS at build time, and any @import placed after non-@import content
-   is invalid per spec (browsers silently drop it, which is exactly the
-   "@import must precede all other statements" warning this was causing). */
-@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap");
+/* 부크크 고딕 자리 — 실제 폰트 파일을 넣으면 여기에 @font-face 2개(Bold/Light)를
+   추가하고 config/theme.ts의 fonts.display/body 값을 바꿔주면 앱 전체에 반영됨.
+   지금은 외부 웹폰트를 아예 안 불러오고 시스템 산세리프만 씀(용량 최적화 원칙 3). */
 @import "tailwindcss";
 
 :root {
   color-scheme: light;
-}
-
-/* Dark mode — toggled via themeStore, which flips this class on <html>.
-   Only ink/paper/line swap; accent stays the same everywhere. */
-:root.dark {
-  color-scheme: dark;
-  --color-ink: #F2F0EC;
-  --color-ink-soft: #A8A49C;
-  --color-paper: #1B1A18;
-  --color-paper-dim: #26241F;
-  --color-line: #3A3733;
-  --color-nav-cream: #201E1A;
-  --color-nav-cream-glass: rgba(32,30,26,.62);
-}
-
-/* Every pill button sets `border-radius: var(--radius-btn)` inline (there's
-   no shared Button component) — matching on that substring lets one rule
-   style all of them app-wide instead of editing every call site.
-   Shadow + backdrop-blur give the same "floating glass" read as BottomNav,
-   without touching `position` — these stay in normal flow and scroll with
-   the page, they just don't sit flush against it. */
-[style*="var(--radius-btn)"] {
-  box-shadow: var(--shadow-btn);
-  backdrop-filter: blur(6px) saturate(160%);
-  -webkit-backdrop-filter: blur(6px) saturate(160%);
 }
 
 body {
@@ -98,26 +71,45 @@ body {
   animation: page-in 0.18s ease-out;
 }
 
-@keyframes bb-wave {
-  0%,
-  100% {
-    transform: scaleY(0.5);
-  }
-  50% {
-    transform: scaleY(1);
-  }
-}
-
-.animate-bb-wave {
-  animation: bb-wave 1.1s ease-in-out infinite;
-}
-
 .no-scrollbar {
   scrollbar-width: none;
 }
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* iPhone mockup frame (components/common/PhoneFrame.tsx) — desktop/tablet
+   viewports only, see the `sm:` gate on .phone-frame__device itself. On an
+   actual phone the frame collapses to nothing and the app fills the real
+   viewport, so this is pure presentation chrome, never a layout dependency. */
+.phone-frame {
+  min-height: 100svh;
+  background: var(--color-ink);
+}
+
+.phone-frame__notch {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 20;
+  height: 26px;
+  width: 120px;
+  transform: translateX(-50%);
+  border-radius: 0 0 16px 16px;
+  background: var(--color-ink);
+}
+
+.phone-frame__home-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  z-index: 20;
+  height: 4px;
+  width: 120px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.35);
 }
 
 /* Belt-and-suspenders: honor the OS-level reduced-motion setting even for

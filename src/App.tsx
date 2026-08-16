@@ -4,6 +4,9 @@ import { Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/common/AppShell";
 import { SplashScreen } from "./components/common/SplashScreen";
 import { PageTransition } from "./components/common/PageTransition";
+import { PhoneFrame } from "./components/common/PhoneFrame";
+import { SignupLoginView } from "./views/SignupLoginView";
+import { useOnboardingStore } from "./store/onboardingStore";
 
 const SPLASH_DURATION_MS = 900;
 
@@ -14,79 +17,63 @@ function lazyView<K extends string>(loader: () => Promise<Record<K, ComponentTyp
   return lazy(() => loader().then((m) => ({ default: m[name] })));
 }
 
-const HomeView = lazyView(() => import("./views/HomeView"), "HomeView");
-const ReadingHubView = lazyView(() => import("./views/ReadingHubView"), "ReadingHubView");
-const ReadingSoloView = lazyView(() => import("./views/ReadingSoloView"), "ReadingSoloView");
-const ReadingAiView = lazyView(() => import("./views/ReadingAiView"), "ReadingAiView");
-const ReadingLiveView = lazyView(() => import("./views/ReadingLiveView"), "ReadingLiveView");
-const ScrollView = lazyView(() => import("./views/ScrollView"), "ScrollView");
-const ScrollHubView = lazyView(() => import("./views/ScrollHubView"), "ScrollHubView");
-const FriendsView = lazyView(() => import("./views/FriendsView"), "FriendsView");
-const LibraryHubView = lazyView(() => import("./views/LibraryHubView"), "LibraryHubView");
-const LibraryVocabView = lazyView(() => import("./views/LibraryVocabView"), "LibraryVocabView");
-const ReadingTimerView = lazyView(() => import("./views/ReadingTimerView"), "ReadingTimerView");
-const MemoView = lazyView(() => import("./views/MemoView"), "MemoView");
-const ReadingHistoryView = lazyView(() => import("./views/ReadingHistoryView"), "ReadingHistoryView");
-const MileageView = lazyView(() => import("./views/MileageView"), "MileageView");
-const EssayDetailView = lazyView(() => import("./views/EssayDetailView"), "EssayDetailView");
-const ActivityView = lazyView(() => import("./views/ActivityView"), "ActivityView");
-const SettingsView = lazyView(() => import("./views/SettingsView"), "SettingsView");
-const AlarmView = lazyView(() => import("./views/AlarmView"), "AlarmView");
+// 스크롤 기능만 다루는 이번 프로토타입 스코프의 4탭 + 설정. 낭독/그룹/독서보조/
+// 마일리지·쿠폰·구매 화면은 전부 범위 밖 — App.tsx에서 더 이상 import/라우팅하지
+// 않을 뿐, 파일 자체는 src/views에 남겨둠(나중에 범위가 넓어지면 참고용).
+const HomeScrollView = lazyView(() => import("./views/HomeScrollView"), "HomeScrollView");
+const LibraryView = lazyView(() => import("./views/LibraryView"), "LibraryView");
+const ExpansionView = lazyView(() => import("./views/ExpansionView"), "ExpansionView");
 const ProfileView = lazyView(() => import("./views/ProfileView"), "ProfileView");
-const PurchaseView = lazyView(() => import("./views/PurchaseView"), "PurchaseView");
+const SettingsView = lazyView(() => import("./views/SettingsView"), "SettingsView");
 
 const ROUTES: { path: string; View: ComponentType }[] = [
-  { path: "/", View: HomeView },
-  { path: "/reading", View: ReadingHubView },
-  { path: "/reading/solo", View: ReadingSoloView },
-  { path: "/reading/ai", View: ReadingAiView },
-  { path: "/reading/live", View: ReadingLiveView },
-  { path: "/scroll", View: ScrollHubView },
-  { path: "/scroll/:bookId", View: ScrollView },
-  { path: "/friends", View: FriendsView },
-  { path: "/assist", View: LibraryHubView },
-  { path: "/assist/vocab", View: LibraryVocabView },
-  { path: "/assist/timer", View: ReadingTimerView },
-  { path: "/assist/memo", View: MemoView },
-  { path: "/assist/history", View: ReadingHistoryView },
-  { path: "/mileage", View: MileageView },
-  { path: "/essay/:id", View: EssayDetailView },
-  { path: "/activity", View: ActivityView },
-  { path: "/settings", View: SettingsView },
-  { path: "/notifications", View: AlarmView },
+  { path: "/", View: HomeScrollView },
+  { path: "/library", View: LibraryView },
+  { path: "/expansion", View: ExpansionView },
   { path: "/profile", View: ProfileView },
-  { path: "/purchase", View: PurchaseView },
+  { path: "/settings", View: SettingsView },
 ];
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const loggedIn = useOnboardingStore((s) => s.loggedIn);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), SPLASH_DURATION_MS);
     return () => clearTimeout(timer);
   }, []);
 
-  if (showSplash) return <SplashScreen />;
+  // 온보딩 순서: 스플래시(흰 배경, 로고) → 회원가입/로그인 → 탭 앱.
+  // 로그인 이후 나오는 "북북 사용법" 팝업은 여기가 아니라 HomeScrollView 안에서
+  // hasSeenTutorial로 처리(스펙: "북북 홈 진입 시" 표시되는 것이라 홈 화면 소관).
+  let content;
+  if (showSplash) {
+    content = <SplashScreen />;
+  } else if (!loggedIn) {
+    content = <SignupLoginView />;
+  } else {
+    content = (
+      <AppShell>
+        <Suspense fallback={<div className="flex-1" />}>
+          <Routes>
+            {ROUTES.map(({ path, View }) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <PageTransition>
+                    <View />
+                  </PageTransition>
+                }
+              />
+            ))}
+          </Routes>
+        </Suspense>
+      </AppShell>
+    );
+  }
 
-  return (
-    <AppShell>
-      <Suspense fallback={<div className="flex-1" />}>
-        <Routes>
-          {ROUTES.map(({ path, View }) => (
-            <Route
-              key={path}
-              path={path}
-              element={
-                <PageTransition>
-                  <View />
-                </PageTransition>
-              }
-            />
-          ))}
-        </Routes>
-      </Suspense>
-    </AppShell>
-  );
+  return <PhoneFrame>{content}</PhoneFrame>;
 }
 
 export default App;
