@@ -58,7 +58,7 @@ export function HomeScrollView() {
   const active: FeedItem | undefined = feed[activeIndex];
   const nextItem: FeedItem | undefined = feed[activeIndex + 1];
 
-  const cardKey = (item: FeedItem) => `${item.book.id}:${item.chunk.chunkId}`;
+  const cardKey = (item: FeedItem) => `${item.book.id}:${item.phraseKey}`;
 
   const handleShare = (item: FeedItem) => {
     setShareTarget({ bookTitle: item.book.title, author: item.book.author, sentences: item.chunk.sentences });
@@ -120,8 +120,8 @@ export function HomeScrollView() {
             <div className="mb-2 text-[10px] font-bold uppercase tracking-[.06em] text-[var(--color-ink-soft)]">
               {item.book.title} · {item.chapterTitle}
             </div>
-            <p className="text-[18px] font-semibold leading-[1.6]" style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}>
-              {item.chunk.sentences.join(" ")}
+            <p className="text-[26px] font-bold leading-[1.5]" style={{ fontFamily: "var(--font-display)", wordBreak: "keep-all" }}>
+              {item.text}
             </p>
             <p className="mt-2 text-[11px] text-[var(--color-ink-soft)]">
               {item.book.author}
@@ -169,7 +169,7 @@ export function HomeScrollView() {
 
       {nextItem && (
         <p className="flex-none px-7 pb-[88px] pt-1 text-center text-[10.5px] text-[var(--color-ink-soft)] opacity-70">
-          다음: {nextItem.chunk.sentences[0]}
+          다음: {nextItem.text}
         </p>
       )}
 

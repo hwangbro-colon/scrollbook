@@ -1,6 +1,6 @@
 // Single source of truth for brand colors, corner-radius tokens, fonts,
 // logo path, and app copy. Per the "실제 출시 범위(스크롤 기능만)" prototype
-// spec: exactly 3 tones — white / black / orange, nothing else. Surfaces
+// spec: exactly 3 tones — white / black / accent blue, nothing else. Surfaces
 // that need a lighter tint (card backgrounds, dividers) are black at low
 // opacity rather than a separate gray hex, so the app never actually
 // introduces a 4th color even where it reads as "light gray."
@@ -12,8 +12,8 @@ export const theme = {
     paper: "#FFFFFF", // primary background
     paperDim: "rgba(10,10,10,.04)", // secondary/section background — tint of ink
     line: "rgba(10,10,10,.12)", // borders/dividers — tint of ink
-    accent: "#FF6A1A", // the one point color — CTAs, active tab, progress, streaks
-    accentTint: "rgba(255,106,26,.12)", // light accent surface (badges, active states)
+    accent: "#348EEF", // the one point color — CTAs, active tab, progress, streaks
+    accentTint: "rgba(52,142,239,.12)", // light accent surface (badges, active states)
     // Topbar/bottom-nav surface — translucent paper (white) for the nav's glass blur.
     navCream: "#FFFFFF",
     navCreamGlass: "rgba(255,255,255,.82)",

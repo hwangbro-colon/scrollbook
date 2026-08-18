@@ -92,15 +92,15 @@ export function ReadFullView() {
         >
           {pages.map((page, i) => (
             <div
-              key={page.chunk.chunkId}
+              key={page.phraseKey}
               className="flex h-full flex-col justify-center px-7"
               style={{ scrollSnapAlign: "start", minHeight: "100%" }}
             >
               <p className="mb-3 text-[10.5px] font-bold uppercase tracking-[.06em] text-[var(--color-ink-soft)]">
                 {page.chapterNumber}장 · {page.chapterTitle}
               </p>
-              <p className="text-[16px] leading-[1.9] text-[var(--color-ink)]" style={{ wordBreak: "keep-all" }}>
-                {page.chunk.sentences.join(" ")}
+              <p className="text-[24px] font-semibold leading-[1.7] text-[var(--color-ink)]" style={{ wordBreak: "keep-all" }}>
+                {page.text}
               </p>
               {i === total - 1 && (
                 <div className="mt-8 flex flex-col items-center gap-1 text-center">
