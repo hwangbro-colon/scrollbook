@@ -10,12 +10,12 @@ import type { ReactNode } from "react";
 // presentation-only chrome, never something the app depends on.
 export function PhoneFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="phone-frame flex items-center justify-center sm:p-6">
+    <div className="phone-frame flex items-center justify-center sm:p-12">
       <div className="relative w-full max-w-md sm:w-[390px]">
         <div className="phone-frame__notch hidden sm:block" aria-hidden="true" />
         <div
           className="hidden sm:block"
-          style={{ position: "absolute", inset: "-10px", borderRadius: "48px", border: "10px solid #050505", pointerEvents: "none" }}
+          style={{ position: "absolute", inset: "-20px", borderRadius: "48px", border: "20px solid #050505", pointerEvents: "none" }}
           aria-hidden="true"
         />
         <div
